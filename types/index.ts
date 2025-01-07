@@ -2,6 +2,7 @@
 
 // Game types and enums
 export type GameType = '♣' | '♠' | '♥' | '♦' | 'G' | 'N' | 'eingepasst';
+export type MitOhneType = 'mit' | 'ohne' | null;
 
 // Core game state interfaces
 export interface Game {
@@ -15,6 +16,13 @@ export interface Game {
   played: boolean;
   won: boolean;
   points?: number;
+  // New properties
+  mitOhne: MitOhneType;
+  multiplier: number;
+  // Optional modifiers
+  ouvert?: boolean;
+  schneiderAnnounced?: boolean;
+  schwarzAnnounced?: boolean;
 }
 
 export interface PlayerCount {

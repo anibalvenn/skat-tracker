@@ -1,6 +1,6 @@
 // src/hooks/useGameState.ts
 import { useState } from 'react';
-import { Game, PlayerCount } from '../types/index';
+import { Game, PlayerCount } from '../types';
 import { calculatePoints } from '../utils/skatScoring';
 import { updatePlayerPoints } from '../services/skatApi';
 
@@ -11,21 +11,13 @@ interface GameStateProps {
   tischId: string | null;
 }
 
-interface GameState {
-  currentGame: Game;
-  setCurrentGame: React.Dispatch<React.SetStateAction<Game>>;
-  games: Game[];
-  playerCounts: PlayerCount[];
-  handleGameComplete: () => Promise<void>;
-}
-
 export const useGameState = ({
   numPlayers,
   totalGames,
   seriesId,
   tischId
-}: GameStateProps): GameState => {
-  const [currentGame, setCurrentGame] = useState<Game>({
+}: GameStateProps) => {
+  const initialGameState: Game = {
     gameNumber: 1,
     dealer: 0,
     player: null,
@@ -33,74 +25,79 @@ export const useGameState = ({
     hand: false,
     schneider: false,
     schwarz: false,
+    ouvert: false,
+    schneiderAnnounced: false,
+    schwarzAnnounced: false,
     played: false,
-    won: false
-  });
+    won: false,
+    mitOhne: 'mit',
+    multiplier: 1
+  };
 
+  const [currentGame, setCurrentGame] = useState<Game>(initialGameState);
   const [games, setGames] = useState<Game[]>(
     Array(totalGames).fill(null).map(() => ({
-      won: null,
-      lost: null,
-      gameType: '',
-      hand: false,
-      schneider: false,
-      schwarz: false,
-      points: 0,
+      ...initialGameState,
       played: false
-    } as unknown as Game))
+    }))
   );
-
   const [playerCounts, setPlayerCounts] = useState<PlayerCount[]>(
     Array(numPlayers).fill(null).map(() => ({
       wonCount: 0,
       lostCount: 0,
-      points: 0
+      basePoints: 0,
+      totalPoints: 0
     }))
   );
 
   const handleGameComplete = async (): Promise<void> => {
-    if (!currentGame.player && currentGame.gameType !== 'eingepasst') return;
+    if (!currentGame.played) return;
 
     const gameIndex = currentGame.gameNumber - 1;
     const newGames = [...games];
     const newPlayerCounts = [...playerCounts];
 
-    if (currentGame.gameType !== 'eingepasst' && currentGame.player !== null) {
-      const points = calculatePoints(currentGame);
-      newPlayerCounts[currentGame.player].points += points;
-      newPlayerCounts[currentGame.player].wonCount += 1;
+    // Update the completed game in the games array
+    newGames[gameIndex] = currentGame;
 
-      newGames[gameIndex] = {
-        ...currentGame,
-        points,
-        played: true
-      };
+    // Calculate points if applicable
+    if (currentGame.player !== null && currentGame.gameType !== 'eingepasst') {
+      const { basePoints, totalPoints } = calculatePoints(currentGame);
 
+      // Update player statistics
+      const playerStats = newPlayerCounts[currentGame.player];
+      if (currentGame.won) {
+        playerStats.wonCount += 1;
+      } else {
+        playerStats.lostCount += 1;
+      }
+
+      // Update points
+      playerStats.basePoints += basePoints;
+      playerStats.totalPoints += totalPoints;
+
+      // Update API if seriesId exists
       if (seriesId) {
         await updatePlayerPoints({
           playerId: currentGame.player,
           seriesId,
           tischId: tischId || undefined,
-          totalPoints: newPlayerCounts[currentGame.player].points,
-          wonGames: newPlayerCounts[currentGame.player].wonCount,
-          lostGames: newPlayerCounts[currentGame.player].lostCount
+          totalPoints: playerStats.totalPoints,
+          wonGames: playerStats.wonCount,
+          lostGames: playerStats.lostCount
         });
       }
     }
 
+    // Update state
     setGames(newGames);
     setPlayerCounts(newPlayerCounts);
-    
+
+    // Reset for next game
     setCurrentGame({
+      ...initialGameState,
       gameNumber: currentGame.gameNumber + 1,
-      dealer: (currentGame.dealer + 1) % numPlayers,
-      player: null,
-      gameType: '',
-      hand: false,
-      schneider: false,
-      schwarz: false,
-      played: false,
-      won: false
+      dealer: (currentGame.dealer + 1) % numPlayers
     });
   };
 
