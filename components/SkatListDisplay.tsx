@@ -1,9 +1,8 @@
-"use client";
-
+"use client"
 import React from 'react';
 import { useGameState } from '../hooks/useGameState';
-import { GameHeader, PlayersList, GamesList, GameControls } from './game';
-
+import { GameHeader, PlayersList, GameControls } from './game';
+import ScrollableGamesList from './game/ScrollableGamesList';
 
 const SkatListDisplay: React.FC<{
   numPlayers?: number;
@@ -18,27 +17,47 @@ const SkatListDisplay: React.FC<{
   seriesId = null,
   tischId = null
 }) => {
-    const displayPlayers = players.length > 0 ? players : Array(numPlayers).fill('');
+  const displayPlayers = players.length > 0 ? players : Array(numPlayers).fill('');
 
-    const {
-      currentGame,
-      setCurrentGame,
-      games,
-      playerCounts,
-      handleGameTypeSelect,
-      handleGameComplete
-    } = useGameState({
-      numPlayers,
-      totalGames,
-      seriesId,
-      tischId
-    });
+  const {
+    currentGame,
+    setCurrentGame,
+    games,
+    playerCounts,
+    handleGameTypeSelect,
+    handleGameComplete
+  } = useGameState({
+    numPlayers,
+    totalGames,
+    seriesId,
+    tischId
+  });
 
-    return (
-      <div className="flex flex-col min-h-screen max-w-screen overflow-x-hidden bg-gray-50">
+  return (
+    <div className="flex flex-col h-screen bg-gray-50">
+      {/* Fixed Header Section */}
+      <div className="flex-none bg-white border-b">
         <GameHeader seriesId={seriesId} tischId={tischId} />
-        <PlayersList players={displayPlayers} playerCounts={playerCounts} />
-        <GamesList games={games} />
+        <div className="px-2 py-1">
+          <PlayersList 
+            players={displayPlayers} 
+            playerCounts={playerCounts}
+            currentDealer={currentGame.dealer}
+          />
+        </div>
+      </div>
+      
+      {/* Scrollable Games List with Safe Areas */}
+      <div className="flex-1 overflow-hidden">
+        <ScrollableGamesList 
+          games={games}
+          currentGame={currentGame}
+          displayPlayers={displayPlayers}
+        />
+      </div>
+      
+      {/* Fixed Footer Section */}
+      <div className="flex-none bg-white border-t">
         <GameControls
           currentGame={currentGame}
           setCurrentGame={setCurrentGame}
@@ -47,7 +66,8 @@ const SkatListDisplay: React.FC<{
           displayPlayers={displayPlayers}
         />
       </div>
-    );
-  };
+    </div>
+  );
+};
 
 export default SkatListDisplay;

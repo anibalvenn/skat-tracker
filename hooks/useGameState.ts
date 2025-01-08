@@ -29,15 +29,16 @@ export const useGameState = ({
     schneiderAnnounced: false,
     schwarzAnnounced: false,
     played: false,
-    won: false,
+    won: true,
     mitOhne: 'mit',
     multiplier: 1
   };
 
   const [currentGame, setCurrentGame] = useState<Game>(initialGameState);
   const [games, setGames] = useState<Game[]>(
-    Array(totalGames).fill(null).map(() => ({
+    Array(totalGames).fill(null).map((_, index) => ({
       ...initialGameState,
+      gameNumber: index + 1,
       played: false
     }))
   );
@@ -51,41 +52,73 @@ export const useGameState = ({
   );
 
   const handleGameComplete = async (): Promise<void> => {
-    if (!currentGame.played) return;
+    if (!currentGame.played && currentGame.gameType !== 'eingepasst') return;
 
     const gameIndex = currentGame.gameNumber - 1;
     const newGames = [...games];
     const newPlayerCounts = [...playerCounts];
 
     // Update the completed game in the games array
-    newGames[gameIndex] = currentGame;
+    newGames[gameIndex] = {
+      ...currentGame,
+      played: true
+    };
 
     // Calculate points if applicable
     if (currentGame.player !== null && currentGame.gameType !== 'eingepasst') {
-      const { basePoints, totalPoints } = calculatePoints(currentGame);
+      const { basePoints, totalPoints, defendersPoints } = calculatePoints(currentGame);
 
-      // Update player statistics
+      // Update playing player's statistics
       const playerStats = newPlayerCounts[currentGame.player];
       if (currentGame.won) {
         playerStats.wonCount += 1;
+        playerStats.basePoints += basePoints;
+        playerStats.totalPoints += totalPoints;
       } else {
         playerStats.lostCount += 1;
-      }
+        playerStats.basePoints += basePoints;
+        playerStats.totalPoints += totalPoints;
 
-      // Update points
-      playerStats.basePoints += basePoints;
-      playerStats.totalPoints += totalPoints;
+        // When game is lost, update defenders' points
+        // All players except the one who lost get defender bonus
+        for (let i = 0; i < numPlayers; i++) {
+          if (i !== currentGame.player) {
+            newPlayerCounts[i].totalPoints += defendersPoints;
+          }
+        }
+      }
 
       // Update API if seriesId exists
       if (seriesId) {
-        await updatePlayerPoints({
-          playerId: currentGame.player,
-          seriesId,
-          tischId: tischId || undefined,
-          totalPoints: playerStats.totalPoints,
-          wonGames: playerStats.wonCount,
-          lostGames: playerStats.lostCount
-        });
+        try {
+          // Update playing player's points
+          await updatePlayerPoints({
+            playerId: currentGame.player,
+            seriesId,
+            tischId: tischId || undefined,
+            totalPoints: playerStats.totalPoints,
+            wonGames: playerStats.wonCount,
+            lostGames: playerStats.lostCount
+          });
+
+          // If game was lost, update defenders' points
+          if (!currentGame.won) {
+            for (let i = 0; i < numPlayers; i++) {
+              if (i !== currentGame.player && i !== currentGame.dealer) {
+                await updatePlayerPoints({
+                  playerId: i,
+                  seriesId,
+                  tischId: tischId || undefined,
+                  totalPoints: newPlayerCounts[i].totalPoints,
+                  wonGames: newPlayerCounts[i].wonCount,
+                  lostGames: newPlayerCounts[i].lostCount
+                });
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Error updating player points:', error);
+        }
       }
     }
 
@@ -93,12 +126,29 @@ export const useGameState = ({
     setGames(newGames);
     setPlayerCounts(newPlayerCounts);
 
-    // Reset for next game
-    setCurrentGame({
-      ...initialGameState,
-      gameNumber: currentGame.gameNumber + 1,
-      dealer: (currentGame.dealer + 1) % numPlayers
-    });
+    // Move to next game
+    const nextGameNumber = currentGame.gameNumber + 1;
+    if (nextGameNumber <= totalGames) {
+      setCurrentGame({
+        ...initialGameState,
+        gameNumber: nextGameNumber,
+        dealer: (currentGame.dealer + 1) % numPlayers
+      });
+    }
+  };
+
+  const handleGameTypeSelect = (gameType: Game['gameType']) => {
+    setCurrentGame(prev => ({
+      ...prev,
+      gameType,
+      // Reset modifiers when game type changes
+      hand: false,
+      schneider: false,
+      schwarz: false,
+      ouvert: false,
+      schneiderAnnounced: false,
+      schwarzAnnounced: false
+    }));
   };
 
   return {
@@ -106,6 +156,7 @@ export const useGameState = ({
     setCurrentGame,
     games,
     playerCounts,
-    handleGameComplete
+    handleGameComplete,
+    handleGameTypeSelect
   };
 };

@@ -4,7 +4,7 @@ import SkatListDisplay from 'components/SkatListDisplay'
 
 export default function Home() {
   return (
-    <main className="min-h-screen p-4">
+    <main className="min-h-screen p-1">
       <SkatListDisplay 
         numPlayers={4} 
         players={["Player 1", "Player 2", "Player 3", "Player 4"]}

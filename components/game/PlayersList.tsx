@@ -1,5 +1,5 @@
-// components/game/PlayersList.tsx
 import React from 'react';
+import { Layers } from 'lucide-react';
 
 interface PlayerStats {
   wonCount: number;
@@ -11,9 +11,14 @@ interface PlayerStats {
 interface PlayersListProps {
   players: string[];
   playerCounts: PlayerStats[];
+  currentDealer: number;
 }
 
-export const PlayersList: React.FC<PlayersListProps> = ({ players, playerCounts }) => (
+export const PlayersList: React.FC<PlayersListProps> = ({ 
+  players, 
+  playerCounts, 
+  currentDealer 
+}) => (
   <div className="w-full">
     <div className="grid bg-gray-100 text-xs border-b" 
          style={{ gridTemplateColumns: 'minmax(112px, 1.6fr) repeat(4, minmax(35px, 0.6fr))' }}>
@@ -26,12 +31,19 @@ export const PlayersList: React.FC<PlayersListProps> = ({ players, playerCounts 
     {players.map((player, idx) => (
       <div 
         key={idx} 
-        className="grid bg-white border-b last:border-b-0 text-sm"
+        className={`grid border-b last:border-b-0 text-sm ${
+          idx === currentDealer ? 'bg-black text-white' : 'bg-white'
+        }`}
         style={{ gridTemplateColumns: 'minmax(112px, 1.6fr) repeat(4, minmax(35px, 0.6fr))' }}
       >
-        {/* Player Name */}
-        <div className="py-1 font-medium truncate">
-          {player || `Player ${idx + 1}`}
+        {/* Player Name with Dealer Indicator */}
+        <div className="py-1 font-medium truncate flex items-center gap-1">
+          {idx === currentDealer && (
+            <Layers className="w-4 h-4 text-white" />
+          )}
+          <span>
+            {player || `Player ${idx + 1}`}
+          </span>
         </div>
         
         {/* Base Points */}
@@ -40,12 +52,16 @@ export const PlayersList: React.FC<PlayersListProps> = ({ players, playerCounts 
         </div>
         
         {/* Won Games (G) */}
-        <div className="text-center py-1 text-green-600">
+        <div className={`text-center py-1 ${
+          idx === currentDealer ? 'text-green-300' : 'text-green-600'
+        }`}>
           {playerCounts[idx]?.wonCount || 0}
         </div>
         
         {/* Lost Games (V) */}
-        <div className="text-center py-1 text-red-600">
+        <div className={`text-center py-1 ${
+          idx === currentDealer ? 'text-red-300' : 'text-red-600'
+        }`}>
           {playerCounts[idx]?.lostCount || 0}
         </div>
         
@@ -57,3 +73,5 @@ export const PlayersList: React.FC<PlayersListProps> = ({ players, playerCounts 
     ))}
   </div>
 );
+
+export default PlayersList;
