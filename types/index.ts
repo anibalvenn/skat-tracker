@@ -23,12 +23,16 @@ export interface Game {
   ouvert?: boolean;
   schneiderAnnounced?: boolean;
   schwarzAnnounced?: boolean;
+  isEditing?: boolean;
+
 }
+
 
 export interface PlayerCount {
   wonCount: number;
   lostCount: number;
-  points: number;
+  basePoints: number;
+  totalPoints: number;
 }
 
 // API related interfaces

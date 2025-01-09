@@ -31,8 +31,9 @@ const SUIT_GRAND_BASE = {
 
 // Game outcome modifiers
 const GAME_OUTCOME = {
-  WIN_BONUS: 50,     // Points added to winner when game is won
-  DEFENDER_BONUS: 30 // Points given to each defender when they beat the player
+  WIN_BONUS: 50,      // Points added when game is won
+  LOSS_PENALTY: 50,   // Points subtracted when game is lost
+  DEFENDER_BONUS: 30  // Points given to each defender when they beat the player
 };
 
 export const calculateNullPoints = (game: Game): GamePoints => {
@@ -55,10 +56,10 @@ export const calculateNullPoints = (game: Game): GamePoints => {
       defendersPoints: 0
     };
   } else {
-    // If game is lost, player loses double points plus penalty and defenders get bonus
+    // If game is lost, player loses double points plus loss penalty
     return {
       basePoints: -basePoints * 2,
-      totalPoints: (-basePoints * 2) - GAME_OUTCOME.WIN_BONUS, // Adding the -50 penalty
+      totalPoints: (-basePoints * 2) - GAME_OUTCOME.LOSS_PENALTY,
       defendersPoints: GAME_OUTCOME.DEFENDER_BONUS
     };
   }
@@ -98,10 +99,10 @@ export const calculateSuitPoints = (game: Game): GamePoints => {
       defendersPoints: 0
     };
   } else {
-    // If game is lost, player loses double points and defenders get bonus
+    // If game is lost, player loses double points plus loss penalty
     return {
       basePoints: -gameValue * 2,
-      totalPoints: -gameValue * 2,
+      totalPoints: (-gameValue * 2) - GAME_OUTCOME.LOSS_PENALTY,
       defendersPoints: GAME_OUTCOME.DEFENDER_BONUS
     };
   }

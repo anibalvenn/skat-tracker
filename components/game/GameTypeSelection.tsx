@@ -5,17 +5,24 @@ import React from 'react';
 interface GameTypeSelectionProps {
   currentGame: Game;
   setCurrentGame: React.Dispatch<React.SetStateAction<Game>>;
+  onSelect?: (type: GameType) => void;  // Make onSelect optional
 }
 
 export const GameTypeSelection: React.FC<GameTypeSelectionProps> = ({ 
   currentGame,
-  setCurrentGame
+  setCurrentGame,
+  onSelect
 }) => {
   const handleTypeSelect = (type: GameType) => {
     setCurrentGame(prev => ({
       ...prev,
       gameType: type
     }));
+    
+    // Call onSelect if provided
+    if (onSelect) {
+      onSelect(type);
+    }
   };
 
   return (
@@ -35,4 +42,4 @@ export const GameTypeSelection: React.FC<GameTypeSelectionProps> = ({
       ))}
     </div>
   );
-}
+};

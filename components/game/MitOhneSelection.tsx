@@ -8,6 +8,7 @@ interface MitOhneSelectionProps {
   setCurrentGame: React.Dispatch<React.SetStateAction<Game>>;
   handleGameComplete: () => Promise<void>;
   onBack: () => void;
+  isEditing?: boolean;
 }
 
 export const MitOhneSelection: React.FC<MitOhneSelectionProps> = ({
@@ -15,6 +16,7 @@ export const MitOhneSelection: React.FC<MitOhneSelectionProps> = ({
   setCurrentGame,
   handleGameComplete,
   onBack,
+  isEditing
 }) => {
   const [shouldComplete, setShouldComplete] = useState(false);
   
@@ -26,8 +28,7 @@ export const MitOhneSelection: React.FC<MitOhneSelectionProps> = ({
 
   useEffect(() => {
     const completeGame = async () => {
-      if (shouldComplete && currentGame.played) {
-        console.log('Completing game with updated state:', currentGame);
+      if (shouldComplete) {
         try {
           await handleGameComplete();
         } catch (error) {
@@ -38,7 +39,7 @@ export const MitOhneSelection: React.FC<MitOhneSelectionProps> = ({
     };
     
     completeGame();
-  }, [shouldComplete, currentGame.played, handleGameComplete, currentGame]);
+  }, [shouldComplete, handleGameComplete]);
 
   const handleIncrement = () => {
     setCurrentGame(prev => ({
@@ -76,6 +77,7 @@ export const MitOhneSelection: React.FC<MitOhneSelectionProps> = ({
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-2">
+        {/* Mit/Ohne Selection */}
         <div className="flex justify-between items-center">
           <div className="flex gap-2">
             <button
@@ -101,6 +103,7 @@ export const MitOhneSelection: React.FC<MitOhneSelectionProps> = ({
             </button>
           </div>
 
+          {/* Multiplier Controls */}
           <div className="flex items-center gap-1">
             <button
               onClick={handleDecrement}
@@ -122,6 +125,7 @@ export const MitOhneSelection: React.FC<MitOhneSelectionProps> = ({
           </div>
         </div>
 
+        {/* Points Display */}
         <div className="text-center p-2 bg-gray-50 rounded">
           <span className="text-sm text-gray-600">Game Value:</span>
           <div className="text-2xl font-bold">{points.basePoints}</div>
@@ -131,26 +135,36 @@ export const MitOhneSelection: React.FC<MitOhneSelectionProps> = ({
         </div>
       </div>
 
+      {/* Win/Loss Buttons */}
       <div className="grid grid-cols-2 gap-2">
         <button
           onClick={() => handleWinLoss(false)}
-          className="py-3 bg-red-500 text-white rounded text-sm hover:bg-red-600 active:bg-red-700 flex items-center justify-center gap-2"
+          className={`py-3 rounded text-sm flex items-center justify-center gap-2 
+                     ${currentGame.played && !currentGame.won
+                       ? 'bg-red-600 text-white'
+                       : 'bg-red-500 text-white hover:bg-red-600 active:bg-red-700'}`}
         >
           <ThumbsDown className="w-4 h-4" />
           Lost
         </button>
         <button
           onClick={() => handleWinLoss(true)}
-          className="py-3 bg-green-500 text-white rounded text-sm hover:bg-green-600 active:bg-green-700 flex items-center justify-center gap-2"
+          className={`py-3 rounded text-sm flex items-center justify-center gap-2
+                     ${currentGame.played && currentGame.won
+                       ? 'bg-green-600 text-white'
+                       : 'bg-green-500 text-white hover:bg-green-600 active:bg-green-700'}`}
         >
           Won
           <ThumbsUp className="w-4 h-4" />
         </button>
       </div>
 
+      {/* Back Button */}
       <button
         onClick={onBack}
-        className="w-full py-2 bg-black text-white rounded text-sm hover:bg-gray-800 active:bg-gray-700 flex items-center justify-center gap-2"
+        className="w-full py-2 bg-black text-white rounded text-sm 
+                 hover:bg-gray-800 active:bg-gray-700 
+                 flex items-center justify-center gap-2"
       >
         <ArrowLeft className="w-4 h-4" />
         Back

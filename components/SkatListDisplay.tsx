@@ -1,3 +1,4 @@
+// src/components/SkatListDisplay.tsx
 "use client"
 import React from 'react';
 import { useGameState } from '../hooks/useGameState';
@@ -25,7 +26,10 @@ const SkatListDisplay: React.FC<{
     games,
     playerCounts,
     handleGameTypeSelect,
-    handleGameComplete
+    handleGameComplete,
+    startEditingGame,
+    cancelEditing,
+    isEditing
   } = useGameState({
     numPlayers,
     totalGames,
@@ -53,6 +57,7 @@ const SkatListDisplay: React.FC<{
           games={games}
           currentGame={currentGame}
           displayPlayers={displayPlayers}
+          onEditGame={startEditingGame}
         />
       </div>
       
@@ -64,6 +69,8 @@ const SkatListDisplay: React.FC<{
           handleGameComplete={handleGameComplete}
           handleGameTypeSelect={handleGameTypeSelect}
           displayPlayers={displayPlayers}
+          isEditing={isEditing}
+          onCancelEdit={cancelEditing}
         />
       </div>
     </div>
