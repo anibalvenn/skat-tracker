@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Minus, ThumbsUp, ThumbsDown, ArrowLeft } from 'lucide-react';
 import { Game } from '@/types/index';
+import { calculateThreePlayerPoints } from '@/utils/threePlayerScoring';
 import { calculatePoints } from '@/utils/skatScoring';
 
 interface MitOhneSelectionProps {
@@ -9,6 +10,7 @@ interface MitOhneSelectionProps {
   handleGameComplete: () => Promise<void>;
   onBack: () => void;
   isEditing?: boolean;
+  isThreePlayerMode?: boolean;
 }
 
 export const MitOhneSelection: React.FC<MitOhneSelectionProps> = ({
@@ -16,15 +18,21 @@ export const MitOhneSelection: React.FC<MitOhneSelectionProps> = ({
   setCurrentGame,
   handleGameComplete,
   onBack,
-  isEditing
+  isEditing,
+  isThreePlayerMode = false
 }) => {
   const [shouldComplete, setShouldComplete] = useState(false);
   
-  // Calculate game points using the existing scoring function
-  const points = calculatePoints({
-    ...currentGame,
-    played: true // Ensure played is true to get point calculation
-  });
+  // Calculate game points using the appropriate scoring function
+  const points = isThreePlayerMode 
+    ? calculateThreePlayerPoints({
+        ...currentGame,
+        played: true
+      })
+    : calculatePoints({
+        ...currentGame,
+        played: true
+      });
 
   useEffect(() => {
     const completeGame = async () => {
@@ -56,21 +64,13 @@ export const MitOhneSelection: React.FC<MitOhneSelectionProps> = ({
   };
 
   const handleWinLoss = async (won: boolean) => {
-    console.log('Before setCurrentGame - played:', currentGame.played);
+    setCurrentGame(prev => ({
+      ...prev,
+      won,
+      played: true,
+      points: points.totalPoints
+    }));
     
-    setCurrentGame(prev => {
-      console.log('Inside setCurrentGame - prev played:', prev.played);
-      const newState = { 
-        ...prev, 
-        won,
-        played: true,
-        points: points.totalPoints
-      };
-      console.log('Inside setCurrentGame - new played:', newState.played);
-      return newState;
-    });
-    
-    // Set flag to trigger game completion after state update
     setShouldComplete(true);
   };
 
@@ -132,6 +132,11 @@ export const MitOhneSelection: React.FC<MitOhneSelectionProps> = ({
           <div className="text-xs text-gray-500">
             Total with bonus/penalty: {points.totalPoints}
           </div>
+          {isThreePlayerMode && (
+            <div className="text-xs text-gray-500">
+              Defender bonus: {points.defendersPoints} each
+            </div>
+          )}
         </div>
       </div>
 

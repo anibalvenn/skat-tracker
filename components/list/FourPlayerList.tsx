@@ -1,24 +1,26 @@
-"use client"
 import React from 'react';
-import { useGameState } from '../hooks/useGameState';
-import { GameHeader, PlayersList, GameControls } from './game';
-import ScrollableGamesList from './game/ScrollableGamesList';
+import { useFourPlayerGameState } from '../../hooks/useFourPlayerGameState';
+import { GameHeader } from '../game/GameHeader';
+import { PlayersList } from '../game/PlayersList';
+import { GameControls } from '../game/GameControls';
+import ScrollableGamesList from '../game/ScrollableGamesList';
 
-const SkatListDisplay: React.FC<{
-  numPlayers?: number;
-  players?: string[];
-  totalGames?: number;
+interface FourPlayerListProps {
+  players: string[];
+  numPlayers: number;
+  totalGames: number;
   seriesId?: string | null;
   tischId?: string | null;
-}> = ({
-  numPlayers = 4,
-  players = [],
-  totalGames = 48,
+}
+
+const FourPlayerList: React.FC<FourPlayerListProps> = ({
+  players,
+  numPlayers,
+  totalGames,
   seriesId = null,
   tischId = null
 }) => {
   const displayPlayers = players.length > 0 ? players : Array(numPlayers).fill('');
-  const isThreePlayerMode = numPlayers === 3;
 
   const {
     currentGame,
@@ -30,7 +32,7 @@ const SkatListDisplay: React.FC<{
     startEditingGame,
     cancelEditing,
     isEditing
-  } = useGameState({
+  } = useFourPlayerGameState({
     numPlayers,
     totalGames,
     seriesId,
@@ -51,14 +53,14 @@ const SkatListDisplay: React.FC<{
         </div>
       </div>
       
-      {/* Scrollable Games List with Safe Areas */}
+      {/* Scrollable Games List */}
       <div className="flex-1 overflow-hidden">
         <ScrollableGamesList 
           games={games}
           currentGame={currentGame}
           displayPlayers={displayPlayers}
           onEditGame={startEditingGame}
-          isThreePlayerMode={isThreePlayerMode}
+          isThreePlayerMode={false}
         />
       </div>
       
@@ -72,11 +74,11 @@ const SkatListDisplay: React.FC<{
           displayPlayers={displayPlayers}
           isEditing={isEditing}
           onCancelEdit={cancelEditing}
-          isThreePlayerMode={isThreePlayerMode}
+          isThreePlayerMode={false}
         />
       </div>
     </div>
   );
 };
 
-export default SkatListDisplay;
+export default FourPlayerList;

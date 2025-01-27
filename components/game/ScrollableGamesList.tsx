@@ -1,5 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import { Game } from '@/types/index';
+import { calculateThreePlayerPoints } from '@/utils/threePlayerScoring';
 import { calculatePoints } from '@/utils/skatScoring';
 import { Hand, Scissors, PaintBucket, Eye, Edit2 } from 'lucide-react';
 
@@ -8,13 +9,15 @@ interface ScrollableGamesListProps {
   currentGame: Game;
   displayPlayers: string[];
   onEditGame: (gameNumber: number) => void;
+  isThreePlayerMode?: boolean;
 }
 
 const ScrollableGamesList: React.FC<ScrollableGamesListProps> = ({
   games,
   currentGame,
   displayPlayers,
-  onEditGame
+  onEditGame,
+  isThreePlayerMode = false
 }) => {
   const listRef = useRef<HTMLDivElement>(null);
   const currentGameRef = useRef<HTMLDivElement>(null);
@@ -39,7 +42,9 @@ const ScrollableGamesList: React.FC<ScrollableGamesListProps> = ({
 
   const getBaseValue = (game: Game) => {
     if (!game.played || !game.gameType || game.gameType === 'eingepasst') return 0;
-    const { basePoints } = calculatePoints(game);
+    const { basePoints } = isThreePlayerMode 
+      ? calculateThreePlayerPoints(game)
+      : calculatePoints(game);
     return game.won ? basePoints : -basePoints;
   };
 
@@ -69,8 +74,13 @@ const ScrollableGamesList: React.FC<ScrollableGamesListProps> = ({
                 <div className="flex items-center gap-2">
                   <span className="font-medium text-gray-600">#{game.gameNumber}</span>
                   {game.player !== null && (
-                    <span className="text-gray-900">
+                    <span className={`text-gray-900 ${
+                      isThreePlayerMode && game.player === game.dealer 
+                        ? 'font-medium text-blue-700'
+                        : ''
+                    }`}>
                       {displayPlayers[game.player] || `Player ${game.player + 1}`}
+                      {isThreePlayerMode && game.player === game.dealer && ' (D)'}
                     </span>
                   )}
                 </div>
@@ -117,10 +127,17 @@ const ScrollableGamesList: React.FC<ScrollableGamesListProps> = ({
                       {getGameModifiers(game)}
                     </div>
                     {game.played && (
-                      <span className={`font-medium ${game.won ? 'text-green-600' : 'text-red-600'
-                        }`}>
-                        {game.won ? getBaseValue(game) : `-${getBaseValue(game)}`}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        {isThreePlayerMode && !game.won && (
+                          <span className="text-xs text-gray-500">
+                            (+40)
+                          </span>
+                        )}
+                        <span className={`font-medium ${game.won ? 'text-green-600' : 'text-red-600'
+                          }`}>
+                          {game.won ? getBaseValue(game) : `-${getBaseValue(game)}`}
+                        </span>
+                      </div>
                     )}
                   </div>
                 )}

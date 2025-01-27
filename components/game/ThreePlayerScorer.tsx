@@ -1,24 +1,24 @@
-"use client"
+import { useThreePlayerGameState } from 'hooks/useThreePlayerGameState';
 import React from 'react';
-import { useGameState } from '../hooks/useGameState';
-import { GameHeader, PlayersList, GameControls } from './game';
-import ScrollableGamesList from './game/ScrollableGamesList';
+import { GameControls } from './GameControls';
+import { GameHeader } from './GameHeader';
+import ScrollableGamesList from './ScrollableGamesList';
+import { ThreePlayersList } from './ThreePlayersList';
 
-const SkatListDisplay: React.FC<{
-  numPlayers?: number;
-  players?: string[];
+interface ThreePlayerScorerProps {
+  players: string[];
   totalGames?: number;
   seriesId?: string | null;
   tischId?: string | null;
-}> = ({
-  numPlayers = 4,
-  players = [],
-  totalGames = 48,
+}
+
+const ThreePlayerScorer: React.FC<ThreePlayerScorerProps> = ({
+  players,
+  totalGames = 36,
   seriesId = null,
   tischId = null
 }) => {
-  const displayPlayers = players.length > 0 ? players : Array(numPlayers).fill('');
-  const isThreePlayerMode = numPlayers === 3;
+  const displayPlayers = players.length > 0 ? players : Array(3).fill('');
 
   const {
     currentGame,
@@ -30,8 +30,8 @@ const SkatListDisplay: React.FC<{
     startEditingGame,
     cancelEditing,
     isEditing
-  } = useGameState({
-    numPlayers,
+  } = useThreePlayerGameState({
+    numPlayers: 3,
     totalGames,
     seriesId,
     tischId
@@ -43,7 +43,7 @@ const SkatListDisplay: React.FC<{
       <div className="flex-none bg-white border-b">
         <GameHeader seriesId={seriesId} tischId={tischId} />
         <div className="px-2 py-1">
-          <PlayersList 
+          <ThreePlayersList 
             players={displayPlayers} 
             playerCounts={playerCounts}
             currentDealer={currentGame.dealer}
@@ -51,14 +51,14 @@ const SkatListDisplay: React.FC<{
         </div>
       </div>
       
-      {/* Scrollable Games List with Safe Areas */}
+      {/* Scrollable Games List */}
       <div className="flex-1 overflow-hidden">
         <ScrollableGamesList 
           games={games}
           currentGame={currentGame}
           displayPlayers={displayPlayers}
           onEditGame={startEditingGame}
-          isThreePlayerMode={isThreePlayerMode}
+          isThreePlayerMode={true}
         />
       </div>
       
@@ -72,11 +72,11 @@ const SkatListDisplay: React.FC<{
           displayPlayers={displayPlayers}
           isEditing={isEditing}
           onCancelEdit={cancelEditing}
-          isThreePlayerMode={isThreePlayerMode}
+          isThreePlayerMode={true}
         />
       </div>
     </div>
   );
 };
 
-export default SkatListDisplay;
+export default ThreePlayerScorer;

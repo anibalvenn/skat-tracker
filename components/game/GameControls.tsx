@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Game, GameType } from '@/types/index';
 import { GameModifiers } from './GameModifiers';
 import { GameTypeSelection } from './GameTypeSelection';
-import { PlayerSelection } from './PlayerSelection';
+import { ThreePlayerSelection } from './ThreePlayerSelection';
+import { FourPlayerSelection } from './FourPlayerSelection';
 import { MitOhneSelection } from './MitOhneSelection';
 import {
   ArrowLeft,
@@ -23,6 +24,7 @@ interface GameControlsProps {
   displayPlayers: string[];
   onCancelEdit?: () => void;
   isEditing: boolean;
+  isThreePlayerMode: boolean;
 }
 
 export const GameControls: React.FC<GameControlsProps> = ({
@@ -32,7 +34,8 @@ export const GameControls: React.FC<GameControlsProps> = ({
   handleGameTypeSelect,
   displayPlayers,
   onCancelEdit,
-  isEditing
+  isEditing,
+  isThreePlayerMode
 }) => {
   const [showMitOhne, setShowMitOhne] = useState(false);
   
@@ -55,7 +58,6 @@ export const GameControls: React.FC<GameControlsProps> = ({
     const modifiers = [];
 
     if (currentGame.schwarzAnnounced) {
-      // If schwarz is announced, only show that icon as it implies all other modifiers
       modifiers.push(
         <div key="schwarz-announced" className="flex items-center">
           <Volume1 className="w-4 h-4" />
@@ -63,7 +65,6 @@ export const GameControls: React.FC<GameControlsProps> = ({
         </div>
       );
     } else if (currentGame.schneiderAnnounced) {
-      // If schneider is announced, it implies hand, so only show schneider announced
       modifiers.push(
         <div key="schneider-announced" className="flex items-center">
           <Volume1 className="w-4 h-4" />
@@ -71,7 +72,6 @@ export const GameControls: React.FC<GameControlsProps> = ({
         </div>
       );
     } else {
-      // Otherwise show individual modifiers
       if (currentGame.hand) {
         modifiers.push(<Hand key="hand" className="w-4 h-4" />);
       }
@@ -83,7 +83,6 @@ export const GameControls: React.FC<GameControlsProps> = ({
       }
     }
 
-    // Ouvert is always shown independently
     if (currentGame.ouvert) {
       modifiers.push(<Eye key="ouvert" className="w-4 h-4" />);
     }
@@ -104,6 +103,9 @@ export const GameControls: React.FC<GameControlsProps> = ({
       setCurrentGame(prev => ({ ...prev, player: null }));
     }
   };
+
+  // Select appropriate player selection component based on game mode
+  const PlayerSelectionComponent = isThreePlayerMode ? ThreePlayerSelection : FourPlayerSelection;
 
   return (
     <div className="relative bg-white border-t p-2">
@@ -129,7 +131,11 @@ export const GameControls: React.FC<GameControlsProps> = ({
         {/* Header Text */}
         <div className="text-center text-sm font-medium mb-3">
           {currentGame.player === null ? (
-            <>{displayPlayers[currentGame.dealer] || `Player ${currentGame.dealer + 1}`} deals cards. Who plays?</>
+            isThreePlayerMode ? (
+              <>Choose who plays (including {displayPlayers[currentGame.dealer] || `Player ${currentGame.dealer + 1}`})</>
+            ) : (
+              <>{displayPlayers[currentGame.dealer] || `Player ${currentGame.dealer + 1}`} deals. Who plays?</>
+            )
           ) : !currentGame.gameType ? (
             <>{displayPlayers[currentGame.player] || `Player ${currentGame.player + 1}`} plays what?</>
           ) : !showMitOhne ? (
@@ -149,15 +155,13 @@ export const GameControls: React.FC<GameControlsProps> = ({
         {/* Game Control Steps */}
         <div className="space-y-2">
           {currentGame.player === null ? (
-            // Step 1: Player Selection
-            <PlayerSelection
+            <PlayerSelectionComponent
               currentGame={currentGame}
               setCurrentGame={setCurrentGame}
               handleGameComplete={handleGameComplete}
               displayPlayers={displayPlayers}
             />
           ) : !currentGame.gameType ? (
-            // Step 2: Game Type Selection
             <>
               <GameTypeSelection
                 currentGame={currentGame}
@@ -169,16 +173,15 @@ export const GameControls: React.FC<GameControlsProps> = ({
               </div>
             </>
           ) : showMitOhne ? (
-            // Step 4: Mit/Ohne and Win/Loss Selection
             <MitOhneSelection
               currentGame={currentGame}
               setCurrentGame={setCurrentGame}
               handleGameComplete={handleGameComplete}
               onBack={handleBack}
               isEditing={isEditing}
+              isThreePlayerMode={isThreePlayerMode}
             />
           ) : (
-            // Step 3: Game Modifiers
             <>
               <GameModifiers
                 currentGame={currentGame}

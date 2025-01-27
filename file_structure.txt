@@ -1,0 +1,41 @@
+app/
+  page.tsx               (NEW - home page with two buttons)
+  setup/
+    page.tsx            (NEW - player setup screen)
+  list/
+    page.tsx            (MOVE - existing main feature)
+
+components/
+
+  page/
+    HomePage.tsx
+    SetupPage.tsx
+    ListPage.tsx
+  game/                 (existing components)
+    GameControls.tsx
+    GameHeader.tsx
+    GameModifiers.tsx
+    GameTypeSelection.tsx
+    PlayerSelection.tsx
+    PlayersList.tsx
+    ScrollableGamesList.tsx
+    index.ts
+  ui/
+    card.tsx
+  SkatListDisplay.tsx
+
+hooks/
+  useGameState.ts
+
+services/
+  skatApi.ts
+
+types/
+  index.ts             (will need updates for new screens)
+
+utils/
+  skatScoring.ts
+  utils.ts
+
+layout.tsx
+globals.css

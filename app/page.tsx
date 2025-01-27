@@ -1,14 +1,11 @@
-// src/app/page.tsx
+import type { Metadata } from 'next';
+import HomePage from '@/components/pages/HomePage';
 
-import SkatListDisplay from 'components/SkatListDisplay'
+export const metadata: Metadata = {
+  title: 'Skat Tracker - Home',
+  description: 'Track your Skat games',
+};
 
-export default function Home() {
-  return (
-    <main className="min-h-screen p-1">
-      <SkatListDisplay 
-        numPlayers={4} 
-        players={["Player 1", "Player 2", "Player 3", "Player 4"]}
-      />
-    </main>
-  )
+export default function Page() {
+  return <HomePage />;
 }
