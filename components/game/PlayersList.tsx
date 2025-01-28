@@ -32,13 +32,17 @@ export const PlayersList: React.FC<PlayersListProps> = ({
     {players.map((player, idx) => (
       <div 
         key={idx} 
-        className="grid border-b last:border-b-0 text-sm bg-white"
+        className={`grid border-b last:border-b-0 text-sm ${
+          idx === currentDealer 
+            ? 'bg-black' 
+            : 'bg-white'
+        }`}
         style={{ gridTemplateColumns: 'minmax(112px, 1.6fr) repeat(4, minmax(35px, 0.6fr))' }}
       >
         {/* Player Name with Dealer Indicator */}
         <div className="py-1 font-medium truncate flex items-center gap-1">
           {idx === currentDealer && (
-            <Layers className="w-4 h-4 text-gray-600" />
+            <Layers className="w-4 h-4 text-white" />
           )}
           <PlayerName 
             name={player} 
@@ -47,17 +51,23 @@ export const PlayersList: React.FC<PlayersListProps> = ({
           />
         </div>
         
-        {/* Stats remain unchanged */}
-        <div className="text-center py-1">
+        {/* Stats cells with conditional styling */}
+        <div className={`text-center py-1 ${idx === currentDealer ? 'text-white' : ''}`}>
           {playerCounts[idx]?.basePoints || 0}
         </div>
-        <div className="text-center py-1 text-green-600">
+        <div className={`text-center py-1 ${
+          idx === currentDealer ? 'text-white' : 'text-green-600'
+        }`}>
           {playerCounts[idx]?.wonCount || 0}
         </div>
-        <div className="text-center py-1 text-red-600">
+        <div className={`text-center py-1 ${
+          idx === currentDealer ? 'text-white' : 'text-red-600'
+        }`}>
           {playerCounts[idx]?.lostCount || 0}
         </div>
-        <div className="text-center py-1 font-semibold">
+        <div className={`text-center py-1 font-semibold ${
+          idx === currentDealer ? 'text-white' : ''
+        }`}>
           {playerCounts[idx]?.totalPoints || 0}
         </div>
       </div>

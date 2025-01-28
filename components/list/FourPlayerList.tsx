@@ -60,8 +60,9 @@ const FourPlayerList: React.FC<FourPlayerListProps> = ({
           currentGame={currentGame}
           displayPlayers={displayPlayers}
           onEditGame={startEditingGame}
-          isThreePlayerMode={false}
-        />
+          isThreePlayerMode={false} 
+          onCancelEdit={cancelEditing}  // Pass it here
+      />
       </div>
       
       {/* Fixed Footer Section */}

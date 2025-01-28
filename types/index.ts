@@ -95,3 +95,12 @@ export interface GameState {
   playerCounts: PlayerCount[];
   totalScore: number;
 }
+
+export interface MitOhneSelectionProps {
+  currentGame: Game;
+  setCurrentGame: React.Dispatch<React.SetStateAction<Game>>;
+  handleGameComplete: () => Promise<void>;
+  onBack: () => void;
+  isEditing: boolean;
+  isThreePlayerMode?: boolean;
+}

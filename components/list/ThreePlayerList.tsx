@@ -59,8 +59,9 @@ const ThreePlayerList: React.FC<ThreePlayerListProps> = ({
           currentGame={currentGame}
           displayPlayers={displayPlayers}
           onEditGame={startEditingGame}
-          isThreePlayerMode={true}  // New prop to handle 3-player specific display
-        />
+          isThreePlayerMode={true} // New prop to handle 3-player specific display
+          onCancelEdit={cancelEditing}  // Pass it here
+          />
       </div>
       
       {/* Fixed Footer Section */}

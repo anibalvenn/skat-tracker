@@ -101,44 +101,46 @@ export const useGameState = ({
         schwarzAnnounced: false
       }));
     }, []);
-      // Start editing a game
-  const startEditingGame = useCallback((gameNumber: number) => {
-    const gameToEdit = games[gameNumber - 1];
 
-    // Store backup of current state
-    setEditingGameBackup({
-      game: { ...gameToEdit },
-      currentGame: { ...currentGame },
-      playerCounts: playerCounts.map(count => ({ ...count }))
-    });
 
-    // Mark game as being edited and set it as current
-    const updatedGames = games.map(game => ({
-      ...game,
-      isEditing: game.gameNumber === gameNumber
-    }));
-
-    setGames(updatedGames);
-    setCurrentGame({ ...gameToEdit, isEditing: true });
-  }, [games, currentGame, playerCounts]);
-
-    // Cancel editing and restore previous state
+   
     const cancelEditing = useCallback(() => {
       if (editingGameBackup) {
-        // Restore the game being edited to its original state
+        // Restore all games to non-editing state
         const updatedGames = games.map(game =>
           game.gameNumber === editingGameBackup.game.gameNumber
             ? { ...editingGameBackup.game, isEditing: false }
             : { ...game, isEditing: false }
         );
-  
+    
         setGames(updatedGames);
         setCurrentGame(editingGameBackup.currentGame);
         setPlayerCounts(editingGameBackup.playerCounts);
         setEditingGameBackup(null);
       }
     }, [editingGameBackup, games]);
-  
+      // Start editing a game
+      const startEditingGame = useCallback((gameNumber: number) => {
+        const gameToEdit = games[gameNumber - 1];
+      
+        // Store backup of current state
+        setEditingGameBackup({
+          game: { ...gameToEdit },
+          currentGame: { ...currentGame },
+          playerCounts: playerCounts.map(count => ({ ...count }))
+        });
+        
+        // Mark game as being edited and set it as current
+        const updatedGames = games.map(game => ({
+          ...game,
+          isEditing: game.gameNumber === gameNumber
+        }));
+      
+        setGames(updatedGames);
+        setCurrentGame({ ...gameToEdit, isEditing: true });
+      }, [games, currentGame, playerCounts]);
+
+
 
   // Helper function to apply points for a player
   const applyPlayerPoints = (
@@ -171,11 +173,11 @@ export const useGameState = ({
 
   const handleGameComplete = useCallback(async (): Promise<void> => {
     if (!currentGame.played && currentGame.gameType !== 'eingepasst') return;
-
+  
     const gameIndex = currentGame.gameNumber - 1;
     let newGames = [...games];
     let newPlayerCounts = [...playerCounts];
-
+  
     // If we're editing, first revert the original game's points
     if (currentGame.isEditing && editingGameBackup) {
       const originalGame = editingGameBackup.game;
@@ -184,12 +186,12 @@ export const useGameState = ({
         newPlayerCounts = revertPlayerPoints(originalGame, originalPoints, newPlayerCounts);
       }
     }
-
+  
     // Apply the new/updated game points
     if (currentGame.player !== null && currentGame.gameType !== 'eingepasst') {
       const points = calculatePoints(currentGame);
       newPlayerCounts = applyPlayerPoints(currentGame, points, newPlayerCounts);
-
+  
       // Update API if seriesId exists
       if (seriesId) {
         try {
@@ -202,8 +204,8 @@ export const useGameState = ({
             wonGames: newPlayerCounts[currentGame.player].wonCount,
             lostGames: newPlayerCounts[currentGame.player].lostCount
           });
-
-          // Update other players' points if needed
+  
+          // Update other players' points if game was lost
           if (!currentGame.won) {
             for (let i = 0; i < numPlayers; i++) {
               if (i !== currentGame.player) {
@@ -223,14 +225,14 @@ export const useGameState = ({
         }
       }
     }
-
+  
     // Update the completed game in the games array
     newGames[gameIndex] = {
       ...currentGame,
       played: true,
       isEditing: false
     };
-
+  
     // After completing the edit, restore normal state or move to next game
     if (currentGame.isEditing && editingGameBackup) {
       setCurrentGame({
@@ -249,11 +251,10 @@ export const useGameState = ({
         });
       }
     }
-
+  
     setGames(newGames);
     setPlayerCounts(newPlayerCounts);
   }, [currentGame, games, playerCounts, editingGameBackup, numPlayers, totalGames, seriesId, tischId, initialGameState]);
-
   // Rest of the hook implementation remains the same...
   return {
     currentGame,
@@ -264,6 +265,6 @@ export const useGameState = ({
     handleGameTypeSelect,
     startEditingGame,
     cancelEditing,
-    isEditing: !!currentGame.isEditing
+    isEditing: !!currentGame.isEditing  // Add this
   };
 };

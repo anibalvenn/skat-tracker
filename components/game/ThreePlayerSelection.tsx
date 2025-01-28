@@ -57,7 +57,7 @@ export const ThreePlayerSelection: React.FC<ThreePlayerSelectionProps> = ({
                    hover:opacity-90 active:opacity-80`}
         >
           {player || `Player ${index + 1}`}
-          {index === currentGame.dealer && ' (D)'}
+          {index === currentGame.dealer}
         </button>
       ))}
 

@@ -59,7 +59,8 @@ const ThreePlayerScorer: React.FC<ThreePlayerScorerProps> = ({
           displayPlayers={displayPlayers}
           onEditGame={startEditingGame}
           isThreePlayerMode={true}
-        />
+          onCancelEdit={cancelEditing}  // Pass it here
+          />
       </div>
       
       {/* Fixed Footer Section */}

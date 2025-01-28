@@ -28,7 +28,7 @@ const PlayerName: React.FC<PlayerNameProps> = ({
       isDealer ? 'ring-2 ring-gray-400' : ''
     } ${className}`}>
       {displayName}
-      {isDealer && ' (D)'}
+      {isDealer}
     </span>
   );
 };

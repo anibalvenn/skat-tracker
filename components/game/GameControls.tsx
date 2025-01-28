@@ -38,7 +38,7 @@ export const GameControls: React.FC<GameControlsProps> = ({
   isThreePlayerMode
 }) => {
   const [showMitOhne, setShowMitOhne] = useState(false);
-  
+
   // Reset MitOhne view when game changes
   useEffect(() => {
     if (currentGame.gameNumber === 1 || !currentGame.played) {
@@ -110,22 +110,7 @@ export const GameControls: React.FC<GameControlsProps> = ({
   return (
     <div className="relative bg-white border-t p-2">
       {/* Edit Mode Header */}
-      {isEditing && (
-        <div className="absolute -top-8 left-0 right-0 bg-blue-500 text-white py-1.5 px-2 
-                       flex items-center justify-between shadow-md">
-          <span className="text-sm font-medium">
-            Editing Game #{currentGame.gameNumber}
-          </span>
-          <button
-            onClick={onCancelEdit}
-            className="p-1 rounded-full hover:bg-blue-600 active:bg-blue-700
-                     transition-colors duration-150"
-            aria-label="Cancel editing"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      )}
+  
 
       <div className="space-y-2">
         {/* Header Text */}
