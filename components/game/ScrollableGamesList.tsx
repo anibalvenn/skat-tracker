@@ -48,6 +48,22 @@ const ScrollableGamesList: React.FC<ScrollableGamesListProps> = ({
     return game.won ? basePoints : -basePoints;
   };
 
+  const getGameStyle = (game: Game) => {
+    if (game.isEditing) {
+      return 'bg-blue-50 ring-2 ring-blue-500';
+    }
+    if (game.gameNumber === currentGame.gameNumber && !game.played) {
+      return 'bg-gray-900 text-white shadow-lg';
+    }
+    if (game.played) {
+      if (game.gameType === 'eingepasst') {
+        return 'bg-yellow-50';
+      }
+      return 'bg-gray-50';
+    }
+    return 'bg-white';
+  };
+
   return (
     <div className="h-full relative">
       <div className="h-2 bg-gradient-to-b from-gray-50 to-transparent sticky top-0 z-10" />
@@ -58,28 +74,25 @@ const ScrollableGamesList: React.FC<ScrollableGamesListProps> = ({
             <div
               key={idx}
               ref={game.gameNumber === currentGame.gameNumber ? currentGameRef : null}
-              className={`p-2 rounded text-sm transition-colors duration-200 ${game.isEditing
-                ? 'bg-blue-50 ring-2 ring-blue-500'
-                : game.gameNumber === currentGame.gameNumber
-                  ? 'bg-white shadow-sm ring-1 ring-blue-100'
-                  : game.played && game.gameType === 'eingepasst'
-                    ? 'bg-yellow-50'
-                    : game.played
-                      ? 'bg-gray-50'
-                      : 'bg-white'
-                }`}
+              className={`p-2 rounded text-sm transition-colors duration-200 ${getGameStyle(game)}`}
             >
               {/* Game Header */}
               <div className="flex justify-between items-start">
                 <div className="flex items-center gap-2">
-                  <span className="font-medium text-gray-600">#{game.gameNumber}</span>
-                  {game.player !== null && (
-                    <span className={`text-gray-900 ${
+                  <span className={`font-medium ${game.gameNumber === currentGame.gameNumber && !game.played ? 'text-white' : 'text-gray-600'}`}>
+                    #{game.gameNumber}
+                  </span>
+                  {/* Show current game data for active game, otherwise show game data */}
+                  {(game.gameNumber === currentGame.gameNumber && !game.played ? currentGame : game).player !== null && (
+                    <span className={`${
                       isThreePlayerMode && game.player === game.dealer 
                         ? 'font-medium text-blue-700'
-                        : ''
+                        : game.gameNumber === currentGame.gameNumber && !game.played
+                        ? 'text-white'
+                        : 'text-gray-900'
                     }`}>
-                      {displayPlayers[game.player] || `Player ${game.player + 1}`}
+                      {displayPlayers[(game.gameNumber === currentGame.gameNumber && !game.played ? currentGame : game).player!] || 
+                       `Player ${(game.gameNumber === currentGame.gameNumber && !game.played ? currentGame : game).player! + 1}`}
                       {isThreePlayerMode && game.player === game.dealer && ' (D)'}
                     </span>
                   )}
@@ -99,20 +112,31 @@ const ScrollableGamesList: React.FC<ScrollableGamesListProps> = ({
                     </button>
                   )}
                   <div className="flex flex-col items-end">
-                    {game.gameType && (
-                      <span className={`font-medium ${(game.gameType === '♥' || game.gameType === '♦')
-                        ? 'text-red-600'
-                        : game.gameType === 'eingepasst'
-                          ? 'text-yellow-700'
-                          : 'text-gray-900'
-                        }`}>
-                        {game.gameType}
+                    {/* Show current game type for active game, otherwise show saved game type */}
+                    {((game.gameNumber === currentGame.gameNumber && !game.played) ? currentGame : game).gameType && (
+                      <span className={`font-medium ${
+                        game.gameNumber === currentGame.gameNumber && !game.played
+                          ? 'text-white'
+                          : (game.gameType === '♥' || game.gameType === '♦')
+                            ? 'text-red-600'
+                            : game.gameType === 'eingepasst'
+                              ? 'text-yellow-700'
+                              : 'text-gray-900'
+                      }`}>
+                        {(game.gameNumber === currentGame.gameNumber && !game.played) ? currentGame.gameType : game.gameType}
                       </span>
                     )}
-                    {game.played && game.gameType !== 'N' &&
-                      game.gameType !== 'eingepasst' && game.mitOhne && (
-                        <span className="text-xs text-gray-500">
-                          {game.mitOhne} × {game.multiplier || 1}
+                    {/* Show mit/ohne only for completed games or current game when explicitly set */}
+                    {((game.played && game.mitOhne) || 
+                      (game.gameNumber === currentGame.gameNumber && !game.played && currentGame.gameType && currentGame.gameType !== 'N' && 
+                       currentGame.gameType !== 'eingepasst' && currentGame.mitOhne)) && (
+                        <span className={`text-xs ${
+                          game.gameNumber === currentGame.gameNumber && !game.played
+                            ? 'text-gray-300'
+                            : 'text-gray-500'
+                        }`}>
+                          {((game.gameNumber === currentGame.gameNumber && !game.played) ? currentGame : game).mitOhne} × 
+                          {((game.gameNumber === currentGame.gameNumber && !game.played) ? currentGame : game).multiplier || 1}
                         </span>
                       )}
                   </div>
@@ -120,11 +144,15 @@ const ScrollableGamesList: React.FC<ScrollableGamesListProps> = ({
               </div>
 
               {/* Game Modifiers and Points */}
-              {(game.played || game.gameNumber === currentGame.gameNumber) &&
-                game.gameType !== 'eingepasst' && (
+              {((game.played || game.gameNumber === currentGame.gameNumber) &&
+                ((game.gameNumber === currentGame.gameNumber && !game.played) ? currentGame : game).gameType !== 'eingepasst') && (
                   <div className="mt-1 flex justify-between items-center">
-                    <div className="flex gap-1 text-gray-500">
-                      {getGameModifiers(game)}
+                    <div className={`flex gap-1 ${
+                      game.gameNumber === currentGame.gameNumber && !game.played
+                        ? 'text-gray-300'
+                        : 'text-gray-500'
+                    }`}>
+                      {getGameModifiers(game.gameNumber === currentGame.gameNumber && !game.played ? currentGame : game)}
                     </div>
                     {game.played && (
                       <div className="flex items-center gap-2">
@@ -133,9 +161,8 @@ const ScrollableGamesList: React.FC<ScrollableGamesListProps> = ({
                             (+40)
                           </span>
                         )}
-                        <span className={`font-medium ${game.won ? 'text-green-600' : 'text-red-600'
-                          }`}>
-                          {game.won ? getBaseValue(game) : `-${getBaseValue(game)}`}
+                        <span className={`font-medium ${game.won ? 'text-green-600' : 'text-red-600'}`}>
+                          {game.won ? getBaseValue(game) : `-${Math.abs(getBaseValue(game))}`}
                         </span>
                       </div>
                     )}

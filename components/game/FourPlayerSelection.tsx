@@ -42,36 +42,36 @@ export const FourPlayerSelection: React.FC<FourPlayerSelectionProps> = ({
   };
 
   return (
-    <div className="grid grid-cols-2 gap-2">
-      {displayPlayers.map((player, index) => {
-        // Skip dealer as they can't play
-        if (index === currentGame.dealer) return null;
-        
-        return (
-          <button
-            key={index}
-            onClick={() => setCurrentGame(prev => ({
-              ...prev,
-              player: index
-            }))}
-            className="p-3 rounded text-sm flex items-center justify-center hover:opacity-80 active:opacity-70"
-          >
-            <PlayerName 
-              name={player} 
-              index={index} 
-              isDealer={false}
-            />
-          </button>
-        );
-      })}
-      
+<div className="grid grid-cols-2 gap-2">
+  {displayPlayers.map((player, index) => {
+    if (index === currentGame.dealer) return null;
+    
+    return (
       <button
-        onClick={handleEingepasst}
-        className="p-3 bg-yellow-50 rounded text-sm hover:bg-yellow-100 
-                 active:bg-yellow-200 text-yellow-800 border border-yellow-200"
+        key={index}
+        onClick={() => setCurrentGame(prev => ({
+          ...prev,
+          player: index
+        }))}
+        className={`p-3 h-12 w-full rounded text-sm flex items-center justify-center
+                   ${index === 0 ? 'bg-blue-50 text-blue-800' : 
+                     index === 1 ? 'bg-green-50 text-green-800' : 
+                     index === 2 ? 'bg-yellow-50 text-yellow-800' :
+                     'bg-orange-50 text-orange-800'}
+                   hover:opacity-90 active:opacity-80`}
       >
-        Eingepasst
+        {player || `Player ${index + 1}`}
       </button>
-    </div>
+    );
+  })}
+  
+  <button
+    onClick={handleEingepasst}
+    className="p-3 h-12 w-full bg-gray-100 rounded text-sm hover:bg-gray-200 
+               active:bg-gray-300 text-gray-800"
+  >
+    Eingepasst
+  </button>
+</div>
   );
 };

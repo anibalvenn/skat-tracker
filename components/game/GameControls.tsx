@@ -132,7 +132,7 @@ export const GameControls: React.FC<GameControlsProps> = ({
         <div className="text-center text-sm font-medium mb-3">
           {currentGame.player === null ? (
             isThreePlayerMode ? (
-              <>Choose who plays (including {displayPlayers[currentGame.dealer] || `Player ${currentGame.dealer + 1}`})</>
+              <> Who plays? </>
             ) : (
               <>{displayPlayers[currentGame.dealer] || `Player ${currentGame.dealer + 1}`} deals. Who plays?</>
             )
