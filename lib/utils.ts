@@ -1,13 +1,12 @@
 // lib/utils.ts
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
+import { GameType } from "../types"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-// Game-related utility functions
-export type GameType = '♣' | '♠' | '♥' | '♦' | 'G' | 'N'
 
 export interface GameState {
   gameNumber: number

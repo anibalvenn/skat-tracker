@@ -4,39 +4,21 @@ import {
   Scissors, 
   PaintBucket, 
   Eye, 
-  Volume,
   Volume1
 } from 'lucide-react';
-
-interface Game {
-  gameNumber: number;
-  dealer: number;
-  player: number | null;
-  gameType: string;
-  hand: boolean;
-  schneider: boolean;
-  schwarz: boolean;
-  ouvert: boolean;
-  schneiderAnnounced: boolean;
-  schwarzAnnounced: boolean;
-  played: boolean;
-  won: boolean;
-  points?: number;
-  mitOhne?: 'mit' | 'ohne';
-  multiplier?: number;
-}
+import { Game, GameType } from '@/types/index';  // Import both Game and GameType
 
 interface GameModifiersProps {
   currentGame: Game;
   setCurrentGame: React.Dispatch<React.SetStateAction<Game>>;
-  handleGameComplete: () => Promise<void>;
+  handleGameComplete?: () => Promise<void>;  // Made optional since it's not used
 }
 
 type ModifierConfig = {
   key: keyof Game;
   label: string;
   icons: React.ElementType[];
-  available: (gameType: string) => boolean;
+  available: (gameType: GameType | '') => boolean;  // Updated to match Game type
 };
 
 const modifiers: ModifierConfig[] = [
@@ -97,7 +79,7 @@ export const GameModifiers: React.FC<GameModifiersProps> = ({
             }));
           }}
           className={`p-1 rounded text-sm flex items-center justify-center gap-1 ${
-            currentGame[key as keyof Game]
+            currentGame[key]
               ? 'bg-blue-500 text-white'
               : 'bg-gray-100 hover:bg-gray-200 active:bg-gray-300'
           }`}

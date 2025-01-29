@@ -1,10 +1,12 @@
 // src/types/skat.types.ts
 
 // Game types and enums
-export type GameType = '♣' | '♠' | '♥' | '♦' | 'G' | 'N' | 'eingepasst';
-export type MitOhneType = 'mit' | 'ohne' | null;
+// src/types/index.ts
 
-// Core game state interfaces
+// Game types and enums
+export type GameType = '♣' | '♠' | '♥' | '♦' | 'G' | 'N' | 'eingepasst';
+export type MitOhneType = 'mit' | 'ohne' | null;  // Changed from undefined to null
+
 export interface Game {
   gameNumber: number;
   dealer: number;
@@ -16,15 +18,12 @@ export interface Game {
   played: boolean;
   won: boolean;
   points?: number;
-  // New properties
   mitOhne: MitOhneType;
   multiplier: number;
-  // Optional modifiers
-  ouvert?: boolean;
-  schneiderAnnounced?: boolean;
-  schwarzAnnounced?: boolean;
-  isEditing?: boolean;
-
+  ouvert: boolean;
+  schneiderAnnounced: boolean;
+  schwarzAnnounced: boolean;
+  isEditing: boolean;
 }
 
 

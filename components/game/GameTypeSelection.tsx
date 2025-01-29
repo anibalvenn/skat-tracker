@@ -9,7 +9,6 @@ interface GameTypeSelectionProps {
 }
 
 export const GameTypeSelection: React.FC<GameTypeSelectionProps> = ({ 
-  currentGame,
   setCurrentGame,
   onSelect
 }) => {

@@ -1,3 +1,5 @@
+/* eslint-disable react/no-unescaped-entities */
+
 import React, { useEffect, useState } from 'react';
 import { Game, GameType } from '@/types/index';
 import { GameModifiers } from './GameModifiers';
@@ -12,8 +14,7 @@ import {
   Hand,
   PaintBucket,
   Scissors,
-  Volume1,
-  X
+  Volume1
 } from 'lucide-react';
 
 interface GameControlsProps {
@@ -33,7 +34,6 @@ export const GameControls: React.FC<GameControlsProps> = ({
   handleGameComplete,
   handleGameTypeSelect,
   displayPlayers,
-  onCancelEdit,
   isEditing,
   isThreePlayerMode
 }) => {
@@ -110,7 +110,7 @@ export const GameControls: React.FC<GameControlsProps> = ({
   return (
     <div className="relative bg-white border-t p-2">
       {/* Edit Mode Header */}
-  
+
 
       <div className="space-y-2">
         {/* Header Text */}

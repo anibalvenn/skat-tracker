@@ -1,4 +1,4 @@
-import { Game, MitOhneSelectionProps } from "@/types/index";
+import {  MitOhneSelectionProps } from "@/types/index";
 import { calculatePoints } from "@/utils/skatScoring";
 import { calculateThreePlayerPoints } from "@/utils/threePlayerScoring";
 import { Minus, Plus, ThumbsDown, ThumbsUp, ArrowLeft } from "lucide-react";
@@ -11,7 +11,6 @@ export const MitOhneSelection: React.FC<MitOhneSelectionProps> = ({
   setCurrentGame,
   handleGameComplete,
   onBack,
-  isEditing,
   isThreePlayerMode = false
 }) => {
   const [shouldComplete, setShouldComplete] = useState(false);

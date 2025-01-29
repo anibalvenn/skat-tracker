@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Game, GameType } from '@/types/index';
-import PlayerName from '../style/PlayerName';
 
 interface FourPlayerSelectionProps {
   currentGame: Game;
