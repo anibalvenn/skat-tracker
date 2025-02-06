@@ -267,4 +267,4 @@ export const useGameState = ({
     cancelEditing,
     isEditing: !!currentGame.isEditing  // Add this
   };
-};
+};  

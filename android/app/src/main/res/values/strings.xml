@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Skat Tracker</string>
+    <string name="title_activity_main">Skat Tracker</string>
+    <string name="package_name">com.skattracker.app</string>
+    <string name="custom_url_scheme">com.skattracker.app</string>
+</resources>

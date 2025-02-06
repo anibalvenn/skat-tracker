@@ -1,9 +1,9 @@
 import React from 'react';
-import { useFourPlayerGameState } from '../../hooks/useFourPlayerGameState';
 import { GameHeader } from '../game/GameHeader';
 import { PlayersList } from '../game/PlayersList';
 import { GameControls } from '../game/GameControls';
 import ScrollableGamesList from '../game/ScrollableGamesList';
+import { useGameState } from 'hooks/useGameState';
 
 interface FourPlayerListProps {
   players: string[];
@@ -32,7 +32,7 @@ const FourPlayerList: React.FC<FourPlayerListProps> = ({
     startEditingGame,
     cancelEditing,
     isEditing
-  } = useFourPlayerGameState({
+  } = useGameState({
     numPlayers,
     totalGames,
     seriesId,
@@ -61,8 +61,8 @@ const FourPlayerList: React.FC<FourPlayerListProps> = ({
           displayPlayers={displayPlayers}
           onEditGame={startEditingGame}
           isThreePlayerMode={false} 
-          onCancelEdit={cancelEditing}  // Pass it here
-      />
+          onCancelEdit={cancelEditing}
+        />
       </div>
       
       {/* Fixed Footer Section */}

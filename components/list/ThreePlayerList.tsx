@@ -1,9 +1,10 @@
 import React from 'react';
 import { GameHeader } from '../game/GameHeader';
-import { ThreePlayersList } from '../game/ThreePlayersList';  // We'll create this next
+import { ThreePlayersList } from '../game/ThreePlayersList';
 import { GameControls } from '../game/GameControls';
 import ScrollableGamesList from '../game/ScrollableGamesList';
-import { useThreePlayerGameState } from 'hooks/useThreePlayerGameState';
+import { useGameState } from 'hooks/useGameState';
+
 interface ThreePlayerListProps {
   players: string[];
   numPlayers: number;
@@ -31,7 +32,7 @@ const ThreePlayerList: React.FC<ThreePlayerListProps> = ({
     startEditingGame,
     cancelEditing,
     isEditing
-  } = useThreePlayerGameState({
+  } = useGameState({
     numPlayers,
     totalGames,
     seriesId,
@@ -59,9 +60,9 @@ const ThreePlayerList: React.FC<ThreePlayerListProps> = ({
           currentGame={currentGame}
           displayPlayers={displayPlayers}
           onEditGame={startEditingGame}
-          isThreePlayerMode={true} // New prop to handle 3-player specific display
-          onCancelEdit={cancelEditing}  // Pass it here
-          />
+          isThreePlayerMode={true}
+          onCancelEdit={cancelEditing}
+        />
       </div>
       
       {/* Fixed Footer Section */}
@@ -74,7 +75,7 @@ const ThreePlayerList: React.FC<ThreePlayerListProps> = ({
           displayPlayers={displayPlayers}
           isEditing={isEditing}
           onCancelEdit={cancelEditing}
-          isThreePlayerMode={true}  // New prop for 3-player specific controls
+          isThreePlayerMode={true}
         />
       </div>
     </div>

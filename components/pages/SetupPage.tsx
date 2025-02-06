@@ -3,16 +3,35 @@
 import { Triangle, Square, ArrowLeft, ArrowRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import { StorageManager } from '@/utils/storage';
 
-export default function Setup() {
+const LIST_FRACTIONS = [
+  { label: 'Full List', value: 1 },
+  { label: '3/4 List', value: 0.75 },
+  { label: '2/3 List', value: 0.6667 },
+  { label: '1/2 List', value: 0.5 },
+  { label: '1/4 List', value: 0.25 },
+  { label: '1/6 List', value: 0.1667 }
+];
+
+export default function SetupPage() {
   const router = useRouter();
   const [mode, setMode] = useState<'3er' | '4er'>('3er');
-  // Initialize players based on mode
   const [players, setPlayers] = useState<string[]>(() => 
     Array(mode === '3er' ? 3 : 4).fill('')
   );
+  const [errors, setErrors] = useState<boolean[]>(() => 
+    Array(mode === '3er' ? 3 : 4).fill(false)
+  );
+  const [selectedFraction, setSelectedFraction] = useState<number>(1);
 
-  // Add effect to update players array when mode changes
+  // Calculate total games based on mode and fraction
+  const getTotalGames = () => {
+    const baseGames = mode === '3er' ? 36 : 48;
+    return Math.floor(baseGames * selectedFraction);
+  };
+
+  // Update players array when mode changes
   useEffect(() => {
     const newPlayerCount = mode === '3er' ? 3 : 4;
     setPlayers(prev => {
@@ -22,7 +41,6 @@ export default function Setup() {
       }
       return prev.slice(0, newPlayerCount);
     });
-    // Update errors array to match new player count
     setErrors(prev => {
       if (prev.length === newPlayerCount) return prev;
       if (prev.length < newPlayerCount) {
@@ -31,9 +49,7 @@ export default function Setup() {
       return prev.slice(0, newPlayerCount);
     });
   }, [mode]);
-const [errors, setErrors] = useState<boolean[]>(() => 
-  Array(mode === '3er' ? 3 : 4).fill(false)
-);
+
   // Validate input length >= 3
   const validateInput = (value: string) => value.length >= 3;
 
@@ -54,20 +70,29 @@ const [errors, setErrors] = useState<boolean[]>(() =>
     setErrors(newErrors);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!isFormValid()) {
       alert('All players must have at least 3 characters');
       return;
     }
   
-    // Use placeholder names for empty inputs
-    const finalPlayers = players.map((player, index) => 
-      player || `Player ${index + 1}`
-    );
-  
-    // Navigate to specific list page based on mode
-    router.push(`/list/${mode}?players=${encodeURIComponent(JSON.stringify(finalPlayers))}`);
-  };  
+    try {
+      // Create new list in storage
+      const totalGames = getTotalGames();
+      const finalPlayers = players.map((player, index) => 
+        player || `Player ${index + 1}`
+      );
+      
+      await StorageManager.createList(finalPlayers, mode, totalGames);
+      
+      // Navigate to list page
+      router.push(`/list/${mode}?players=${encodeURIComponent(JSON.stringify(finalPlayers))}`);
+    } catch (error) {
+      console.error('Error creating list:', error);
+      alert('Failed to create list. Please try again.');
+    }
+  };
+
   return (
     <main className="min-h-screen flex flex-col bg-gray-50">
       {/* Header */}
@@ -100,6 +125,30 @@ const [errors, setErrors] = useState<boolean[]>(() =>
             <Square className="w-5 h-5" />
             4er
           </button>
+        </div>
+
+        {/* List Size Selection */}
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            List Size
+          </label>
+          <select
+            value={selectedFraction}
+            onChange={(e) => setSelectedFraction(Number(e.target.value))}
+            className="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            {LIST_FRACTIONS.map((fraction) => (
+              <option key={fraction.value} value={fraction.value}>
+                {fraction.label} - {Math.floor((mode === '3er' ? 36 : 48) * fraction.value)} games
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Total Games Display */}
+        <div className="text-center mb-6">
+          <span className="text-sm text-gray-600">Total Games:</span>
+          <span className="ml-2 font-medium">{getTotalGames()}</span>
         </div>
 
         {/* Player Inputs */}

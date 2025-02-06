@@ -39,3 +39,60 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+
+/android/*.apk
+/android/*.aar
+/android/*.ap_
+/android/*.aab
+/android/*.dex
+/android/*.class
+/android/bin/
+/android/gen/
+/android/out/
+/android/.gradle/
+/android/build/
+/android/local.properties
+/android/proguard/
+/android/*.log
+/android/.navigation/
+/android/captures/
+/android/*.iml
+/android/.idea/
+/android/.externalNativeBuild
+/android/.cxx/
+/android/app/release/
+
+# Gradle specific
+/android/.gradle
+/android/gradle-wrapper.jar
+/android/.gradletasknamecache
+/android/gradlew.bat
+/android/gradle/wrapper/gradle-wrapper.jar
+
+# IDE specific
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+.vscode/
+
+# Capacitor-specific Android files
+/android/capacitor-cordova-android-plugins
+/android/app/src/main/assets/public
+/android/app/src/main/assets/capacitor.config.json
+/android/app/src/main/assets/capacitor.plugins.json
+/android/app/src/main/res/xml/config.xml
+
+# Build outputs
+/android/app/build/
+/android/app/release/
+/android/app/debug/
+/android/app/production/
+
+/app/key.properties
+
+# Optional: Keystore files (uncomment if needed)
+#/android/*.jks
+#/android/*.keystore
