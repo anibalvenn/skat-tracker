@@ -42,7 +42,16 @@ export default function YourListsPage() {
   const handleOpen = (list: StoredList) => {
     const mode = list.mode;
     const playersParam = encodeURIComponent(JSON.stringify(list.players));
-    router.push(`/list/${mode}?players=${playersParam}`);
+    console.log('Opening list with data:', {
+      id: list.id,
+      mode: list.mode,
+      totalGames: list.totalGames,
+      games: list.games
+    });
+    
+    router.push(
+      `/list/${mode}?players=${playersParam}&listId=${list.id}&totalGames=${list.totalGames}`
+    );
   };
 
   const formatDate = (dateString: string) => {

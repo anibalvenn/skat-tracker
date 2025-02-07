@@ -39,8 +39,18 @@ export class StorageManager {
   }
 
   static async getAllLists(): Promise<StoredList[]> {
-    const data = await this.getData();
-    return data.lists.sort((a, b) => 
+    const { value } = await Preferences.get({ key: STORAGE_KEY });
+    console.log('Raw storage value:', value);
+
+    if (!value) {
+      console.log('No stored lists found');
+      return [];
+    }
+
+    const data = JSON.parse(value);
+    console.log('Parsed storage data:', data);
+
+    return data.lists.sort((a: { date: string | number | Date; }, b: { date: string | number | Date; }) =>
       new Date(b.date).getTime() - new Date(a.date).getTime()
     );
   }
@@ -56,7 +66,7 @@ export class StorageManager {
     totalGames: number
   ): Promise<StoredList> {
     const data = await this.getData();
-    
+
     // Mark any in-progress list as abandoned
     data.lists = data.lists.map(list => ({
       ...list,
@@ -86,6 +96,7 @@ export class StorageManager {
     };
 
     data.lists.push(newList);
+    console.log('99', newList)
     data.nextId++;
 
     await this.saveData(data);
@@ -94,7 +105,7 @@ export class StorageManager {
 
   static async updateList(updatedList: StoredList): Promise<void> {
     const data = await this.getData();
-    
+
     // If list is being edited, mark current in-progress as abandoned
     if (updatedList.status === 'in_progress') {
       data.lists = data.lists.map(list => ({
@@ -104,7 +115,7 @@ export class StorageManager {
     }
 
     // Update the list
-    data.lists = data.lists.map(list => 
+    data.lists = data.lists.map(list =>
       list.id === updatedList.id ? updatedList : list
     );
 
@@ -122,25 +133,58 @@ export class StorageManager {
     game: Game,
     playerCounts: PlayerCount[]
   ): Promise<void> {
-    const data = await this.getData();
-    const listIndex = data.lists.findIndex(list => list.id === listId);
-    
-    if (listIndex === -1) return;
+    try {
+      console.log('137', game)
+      const data = await this.getData();
+      const listIndex = data.lists.findIndex(list => list.id === listId);
 
-    const list = data.lists[listIndex];
-    const gameIndex = list.games.findIndex(g => g.gameNumber === game.gameNumber);
+      if (listIndex === -1) return;
 
-    if (gameIndex === -1) {
-      list.games.push(game);
-    } else {
-      list.games[gameIndex] = game;
+      const list = data.lists[listIndex];
+
+      // Find if game already exists in the list
+      const gameIndex = list.games.findIndex(g => g.gameNumber === game.gameNumber);
+
+      // Store complete game data
+      const gameToStore = {
+        ...game,
+        played: true,
+        isEditing: false,
+        // Ensure all game properties are included
+        gameNumber: game.gameNumber,
+        dealer: game.dealer,
+        player: game.player,
+        gameType: game.gameType,
+        hand: game.hand,
+        schneider: game.schneider,
+        schwarz: game.schwarz,
+        ouvert: game.ouvert,
+        schneiderAnnounced: game.schneiderAnnounced,
+        schwarzAnnounced: game.schwarzAnnounced,
+        won: game.won,
+        mitOhne: game.mitOhne,
+        multiplier: game.multiplier
+      };
+
+      if (gameIndex === -1) {
+        list.games.push(gameToStore);
+      } else {
+        list.games[gameIndex] = gameToStore;
+      }
+
+      // Update player counts
+      list.playerCounts = playerCounts;
+      list.playedGames = list.games.filter(g => g.played).length;
+
+      // Update list status
+      list.status = list.playedGames === list.totalGames ? 'completed' : 'in_progress';
+
+      data.lists[listIndex] = list;
+      await this.saveData(data);
+      console.log(list)
+    } catch (error) {
+      console.error('Error updating game in list:', error);
+      throw error;
     }
-
-    list.playerCounts = playerCounts;
-    list.playedGames = list.games.filter(g => g.played).length;
-    list.status = list.playedGames === list.totalGames ? 'completed' : 'in_progress';
-
-    data.lists[listIndex] = list;
-    await this.saveData(data);
   }
 }

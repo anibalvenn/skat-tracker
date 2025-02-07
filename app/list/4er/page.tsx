@@ -6,16 +6,28 @@ import { Suspense } from 'react';
 
 function FourPlayerListContent() {
   const searchParams = useSearchParams();
-  
+
   // Get players from URL parameters
   const playersParam = searchParams.get('players');
+  const totalGamesParam = searchParams.get('totalGames');
   const players = playersParam ? JSON.parse(decodeURIComponent(playersParam)) : [];
+  const totalGames = totalGamesParam ? parseInt(totalGamesParam, 10) : 48;
+  const listId = searchParams.get('listId');
 
+
+  console.log('List parameters:', {
+    listId,
+    players,
+    totalGames,
+    rawParams: Object.fromEntries(searchParams.entries())
+  });
   return (
-    <FourPlayerList 
+    <FourPlayerList
       players={players}
       numPlayers={4}
-      totalGames={36}
+      totalGames={totalGames}
+      listId={listId ? parseInt(listId, 10) : undefined}
+
     />
   );
 }

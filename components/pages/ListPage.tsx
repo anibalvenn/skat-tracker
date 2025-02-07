@@ -6,19 +6,21 @@ import { Suspense } from 'react';
 
 function ListContent() {
   const searchParams = useSearchParams();
-  
-  // Get players from URL parameters
+
+  // To this:
   const playersParam = searchParams.get('players');
   const players = playersParam ? JSON.parse(decodeURIComponent(playersParam)) : [];
-  
-  // Get mode from URL parameters
   const mode = searchParams.get('mode');
+  const totalGamesParam = searchParams.get('totalGames');
+  const totalGames = totalGamesParam ? parseInt(totalGamesParam, 10) : (mode === '3er' ? 36 : 48);
   const numPlayers = mode === '3er' ? 3 : 4;
 
+
   return (
-    <SkatListDisplay 
+    <SkatListDisplay
       numPlayers={numPlayers}
       players={players}
+      totalGames={totalGames}
     />
   );
 }

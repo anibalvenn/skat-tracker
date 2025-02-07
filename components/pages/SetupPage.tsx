@@ -77,21 +77,25 @@ export default function SetupPage() {
     }
   
     try {
-      // Create new list in storage
+      // Create new list in storage and get the new list with its ID
       const totalGames = getTotalGames();
       const finalPlayers = players.map((player, index) => 
         player || `Player ${index + 1}`
       );
       
-      await StorageManager.createList(finalPlayers, mode, totalGames);
+      // Get the newly created list which includes its ID
+      const newList = await StorageManager.createList(finalPlayers, mode, totalGames);
       
-      // Navigate to list page
-      router.push(`/list/${mode}?players=${encodeURIComponent(JSON.stringify(finalPlayers))}`);
+      // Navigate to list page WITH the listId
+      router.push(
+        `/list/${mode}?players=${encodeURIComponent(JSON.stringify(finalPlayers))}` +
+        `&totalGames=${totalGames}&listId=${newList.id}`
+      );
     } catch (error) {
       console.error('Error creating list:', error);
       alert('Failed to create list. Please try again.');
     }
-  };
+};
 
   return (
     <main className="min-h-screen flex flex-col bg-gray-50">

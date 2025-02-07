@@ -1,62 +1,132 @@
 // src/hooks/useGameState.ts
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Game, PlayerCount, GameType } from '../types';
 import { calculatePoints } from '../utils/skatScoring';
 import { updatePlayerPoints } from '../services/skatApi';
+import { StorageManager } from '@/utils/storage';
 
 interface GameStateProps {
   numPlayers: number;
   totalGames: number;
   seriesId: string | null;
   tischId: string | null;
+  listId?: number;
 }
+
+// Move initialGameState outside the hook
+const initialGameState: Game = {
+  gameNumber: 1,
+  dealer: 0,
+  player: null,
+  gameType: '',
+  hand: false,
+  schneider: false,
+  schwarz: false,
+  ouvert: false,
+  schneiderAnnounced: false,
+  schwarzAnnounced: false,
+  played: false,
+  won: false,
+  mitOhne: 'mit',
+  multiplier: 1,
+  isEditing: false
+};
 
 export const useGameState = ({
   numPlayers,
   totalGames,
   seriesId,
-  tischId
+  tischId,
+  listId
 }: GameStateProps) => {
-  // Initial game state remains the same...
-  const initialGameState: Game = {
-    gameNumber: 1,
-    dealer: 0,
-    player: null,
-    gameType: '',
-    hand: false,
-    schneider: false,
-    schwarz: false,
-    ouvert: false,
-    schneiderAnnounced: false,
-    schwarzAnnounced: false,
-    played: false,
-    won: false,
-    mitOhne: 'mit',
-    multiplier: 1,
-    isEditing: false
-  };
-
   const [currentGame, setCurrentGame] = useState<Game>(initialGameState);
-  const [games, setGames] = useState<Game[]>(
-    Array(totalGames).fill(null).map((_, index) => ({
-      ...initialGameState,
-      gameNumber: index + 1,
-      dealer: Math.floor(index / (numPlayers - 1)) % numPlayers
-    }))
-  );
-  const [playerCounts, setPlayerCounts] = useState<PlayerCount[]>(
-    Array(numPlayers).fill(null).map(() => ({
-      wonCount: 0,
-      lostCount: 0,
-      basePoints: 0,
-      totalPoints: 0
-    }))
-  );
+  const [games, setGames] = useState<Game[]>([]);
+  const [playerCounts, setPlayerCounts] = useState<PlayerCount[]>([]);
   const [editingGameBackup, setEditingGameBackup] = useState<{
     game: Game;
     currentGame: Game;
     playerCounts: PlayerCount[];
   } | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Create a memoized function to generate initial games
+  const createInitialGames = useCallback(() => {
+    return Array(totalGames).fill(null).map((_, index) => ({
+      ...initialGameState,
+      gameNumber: index + 1,
+      dealer: Math.floor(index / (numPlayers - 1)) % numPlayers
+    }));
+  }, [totalGames, numPlayers]);
+
+  // Create a memoized function to generate initial player counts
+  const createInitialPlayerCounts = useCallback(() => {
+    return Array(numPlayers).fill(null).map(() => ({
+      wonCount: 0,
+      lostCount: 0,
+      basePoints: 0,
+      totalPoints: 0
+    }));
+  }, [numPlayers]);
+
+  // Load stored data on mount if listId is provided
+  useEffect(() => {
+    const loadStoredData = async () => {
+      if (listId) {
+        try {
+          const lists = await StorageManager.getAllLists();
+          const storedList = lists.find(list => list.id === listId);
+          
+          if (storedList) {
+            // Create base games array
+            const initialGames = Array(totalGames).fill(null).map((_, index) => ({
+              ...initialGameState,
+              gameNumber: index + 1,
+              dealer: Math.floor(index / (numPlayers - 1)) % numPlayers
+            }));
+
+            // Merge stored games, preserving all game data
+            storedList.games.forEach(storedGame => {
+              const index = storedGame.gameNumber - 1;
+              if (index >= 0 && index < initialGames.length) {
+                // Ensure we copy all game properties
+                initialGames[index] = {
+                  ...storedGame,
+                  isEditing: false  // Reset editing state on load
+                };
+              }
+            });
+
+            setGames(initialGames);
+            setPlayerCounts(storedList.playerCounts);
+
+            // Find next unplayed game or use last game
+            const nextUnplayedGame = initialGames.find(game => !game.played);
+            if (nextUnplayedGame) {
+              setCurrentGame(nextUnplayedGame);
+            } else {
+              setCurrentGame(initialGames[initialGames.length - 1]);
+            }
+          }
+        } catch (error) {
+          console.error('Error loading stored list:', error);
+        }
+      } else {
+        // Initialize fresh game state
+        const freshGames = Array(totalGames).fill(null).map((_, index) => ({
+          ...initialGameState,
+          gameNumber: index + 1,
+          dealer: Math.floor(index / (numPlayers - 1)) % numPlayers
+        }));
+        
+        setGames(freshGames);
+        setPlayerCounts(createInitialPlayerCounts());
+        setCurrentGame({ ...initialGameState });
+      }
+      setIsLoading(false);
+    };
+
+    loadStoredData();
+  }, [listId, createInitialGames, createInitialPlayerCounts]);
 
   // Helper function to revert points for a player
   const revertPlayerPoints = (
@@ -65,7 +135,7 @@ export const useGameState = ({
     playerStats: PlayerCount[]
   ): PlayerCount[] => {
     const updatedStats = [...playerStats];
-    
+
     if (originalGame.won) {
       updatedStats[originalGame.player!].wonCount--;
       updatedStats[originalGame.player!].basePoints -= points.basePoints;
@@ -78,71 +148,16 @@ export const useGameState = ({
 
       // Remove defender points from other players
       for (let i = 0; i < numPlayers; i++) {
-        if (i !== originalGame.player ) {
+        if (i !== originalGame.player) {
           updatedStats[i].totalPoints -= points.defendersPoints || 0;
         }
       }
     }
-    
+
     return updatedStats;
   };
 
-    // Handle game type selection
-    const handleGameTypeSelect = useCallback((gameType: GameType) => {
-      setCurrentGame(prev => ({
-        ...prev,
-        gameType,
-        // Reset modifiers when game type changes
-        hand: false,
-        schneider: false,
-        schwarz: false,
-        ouvert: false,
-        schneiderAnnounced: false,
-        schwarzAnnounced: false
-      }));
-    }, []);
 
-
-   
-    const cancelEditing = useCallback(() => {
-      if (editingGameBackup) {
-        // Restore all games to non-editing state
-        const updatedGames = games.map(game =>
-          game.gameNumber === editingGameBackup.game.gameNumber
-            ? { ...editingGameBackup.game, isEditing: false }
-            : { ...game, isEditing: false }
-        );
-    
-        setGames(updatedGames);
-        setCurrentGame(editingGameBackup.currentGame);
-        setPlayerCounts(editingGameBackup.playerCounts);
-        setEditingGameBackup(null);
-      }
-    }, [editingGameBackup, games]);
-      // Start editing a game
-      const startEditingGame = useCallback((gameNumber: number) => {
-        const gameToEdit = games[gameNumber - 1];
-      
-        // Store backup of current state
-        setEditingGameBackup({
-          game: { ...gameToEdit },
-          currentGame: { ...currentGame },
-          playerCounts: playerCounts.map(count => ({ ...count }))
-        });
-        
-        // Mark game as being edited and set it as current
-        const updatedGames = games.map(game => ({
-          ...game,
-          isEditing: game.gameNumber === gameNumber
-        }));
-      
-        setGames(updatedGames);
-        setCurrentGame({ ...gameToEdit, isEditing: true });
-      }, [games, currentGame, playerCounts]);
-
-
-
-  // Helper function to apply points for a player
   const applyPlayerPoints = (
     game: Game,
     points: { basePoints: number; totalPoints: number; defendersPoints?: number },
@@ -171,13 +186,68 @@ export const useGameState = ({
     return updatedStats;
   };
 
+  // Handle game type selection
+  const handleGameTypeSelect = useCallback((gameType: GameType) => {
+    setCurrentGame(prev => ({
+      ...prev,
+      gameType,
+      // Reset modifiers when game type changes
+      hand: false,
+      schneider: false,
+      schwarz: false,
+      ouvert: false,
+      schneiderAnnounced: false,
+      schwarzAnnounced: false
+    }));
+  }, []);
+
+
+  const cancelEditing = useCallback(() => {
+    if (editingGameBackup) {
+      // Restore all games to non-editing state
+      const updatedGames = games.map(game =>
+        game.gameNumber === editingGameBackup.game.gameNumber
+          ? { ...editingGameBackup.game, isEditing: false }
+          : { ...game, isEditing: false }
+      );
+  
+      setGames(updatedGames);
+      setCurrentGame(editingGameBackup.currentGame);
+      setPlayerCounts(editingGameBackup.playerCounts);
+      setEditingGameBackup(null);
+    }
+  }, [editingGameBackup, games]);
+
+  const startEditingGame = useCallback((gameNumber: number) => {
+    const gameToEdit = games[gameNumber - 1];
+  
+    // Store backup of current state
+    setEditingGameBackup({
+      game: { ...gameToEdit },
+      currentGame: { ...currentGame },
+      playerCounts: playerCounts.map(count => ({ ...count }))
+    });
+    
+    // Mark game as being edited and set it as current
+    const updatedGames = games.map(game => ({
+      ...game,
+      isEditing: game.gameNumber === gameNumber
+    }));
+  
+    setGames(updatedGames);
+    setCurrentGame({ ...gameToEdit, isEditing: true });
+  }, [games, currentGame, playerCounts]);
+
+
+
   const handleGameComplete = useCallback(async (): Promise<void> => {
     if (!currentGame.played && currentGame.gameType !== 'eingepasst') return;
-  
+    console.log('245', currentGame)
+
     const gameIndex = currentGame.gameNumber - 1;
     let newGames = [...games];
     let newPlayerCounts = [...playerCounts];
-  
+
     // If we're editing, first revert the original game's points
     if (currentGame.isEditing && editingGameBackup) {
       const originalGame = editingGameBackup.game;
@@ -186,12 +256,12 @@ export const useGameState = ({
         newPlayerCounts = revertPlayerPoints(originalGame, originalPoints, newPlayerCounts);
       }
     }
-  
+
     // Apply the new/updated game points
     if (currentGame.player !== null && currentGame.gameType !== 'eingepasst') {
       const points = calculatePoints(currentGame);
       newPlayerCounts = applyPlayerPoints(currentGame, points, newPlayerCounts);
-  
+
       // Update API if seriesId exists
       if (seriesId) {
         try {
@@ -204,7 +274,7 @@ export const useGameState = ({
             wonGames: newPlayerCounts[currentGame.player].wonCount,
             lostGames: newPlayerCounts[currentGame.player].lostCount
           });
-  
+
           // Update other players' points if game was lost
           if (!currentGame.won) {
             for (let i = 0; i < numPlayers; i++) {
@@ -224,15 +294,29 @@ export const useGameState = ({
           console.error('Error updating player points:', error);
         }
       }
+
+      // Update storage if listId exists
+      if (listId) {
+        try {
+          const gameToStore = {
+            ...currentGame,
+            played: true,
+            isEditing: false
+          };
+          await StorageManager.updateGameInList(listId, gameToStore, newPlayerCounts);
+        } catch (error) {
+          console.error('Error updating stored list:', error);
+        }
+      }
     }
-  
+
     // Update the completed game in the games array
     newGames[gameIndex] = {
       ...currentGame,
       played: true,
       isEditing: false
     };
-  
+
     // After completing the edit, restore normal state or move to next game
     if (currentGame.isEditing && editingGameBackup) {
       setCurrentGame({
@@ -251,11 +335,11 @@ export const useGameState = ({
         });
       }
     }
-  
+
     setGames(newGames);
     setPlayerCounts(newPlayerCounts);
-  }, [currentGame, games, playerCounts, editingGameBackup, numPlayers, totalGames, seriesId, tischId, initialGameState]);
-  // Rest of the hook implementation remains the same...
+  }, [currentGame, games, playerCounts, editingGameBackup, numPlayers, totalGames, seriesId, tischId, initialGameState, listId]);
+
   return {
     currentGame,
     setCurrentGame,
@@ -265,6 +349,7 @@ export const useGameState = ({
     handleGameTypeSelect,
     startEditingGame,
     cancelEditing,
-    isEditing: !!currentGame.isEditing  // Add this
+    isEditing: !!currentGame.isEditing,
+    isLoading
   };
-};  
+};

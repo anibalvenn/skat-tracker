@@ -11,6 +11,8 @@ interface ThreePlayerListProps {
   totalGames: number;
   seriesId?: string | null;
   tischId?: string | null;
+  listId?: number;  // Add this
+
 }
 
 const ThreePlayerList: React.FC<ThreePlayerListProps> = ({
@@ -18,7 +20,8 @@ const ThreePlayerList: React.FC<ThreePlayerListProps> = ({
   numPlayers,
   totalGames,
   seriesId = null,
-  tischId = null
+  tischId = null,
+  listId
 }) => {
   const displayPlayers = players.length > 0 ? players : Array(numPlayers).fill('');
 
@@ -36,7 +39,8 @@ const ThreePlayerList: React.FC<ThreePlayerListProps> = ({
     numPlayers,
     totalGames,
     seriesId,
-    tischId
+    tischId,
+    listId
   });
 
   return (

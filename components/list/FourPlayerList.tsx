@@ -11,6 +11,8 @@ interface FourPlayerListProps {
   totalGames: number;
   seriesId?: string | null;
   tischId?: string | null;
+  listId?: number;  // Add this
+
 }
 
 const FourPlayerList: React.FC<FourPlayerListProps> = ({
@@ -18,7 +20,9 @@ const FourPlayerList: React.FC<FourPlayerListProps> = ({
   numPlayers,
   totalGames,
   seriesId = null,
-  tischId = null
+  tischId = null,
+  listId
+  
 }) => {
   const displayPlayers = players.length > 0 ? players : Array(numPlayers).fill('');
 
@@ -36,7 +40,8 @@ const FourPlayerList: React.FC<FourPlayerListProps> = ({
     numPlayers,
     totalGames,
     seriesId,
-    tischId
+    tischId,
+    listId
   });
 
   return (
