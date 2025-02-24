@@ -89,7 +89,7 @@ const ScrollableGamesList: React.FC<ScrollableGamesListProps> = ({
                   </button>
                 </div>
               )}
-              
+
               <div
                 ref={game.gameNumber === currentGame.gameNumber ? currentGameRef : null}
                 className={`p-2 rounded text-sm transition-colors duration-200 ${getGameStyle(game)}`}
@@ -97,11 +97,10 @@ const ScrollableGamesList: React.FC<ScrollableGamesListProps> = ({
                 {/* Rest of the game card content remains the same */}
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-2">
-                    <span className={`font-medium ${
-                      game.gameNumber === currentGame.gameNumber && !game.played
-                        ? 'text-white'
-                        : 'text-gray-600'
-                    }`}>
+                    <span className={`font-medium ${game.gameNumber === currentGame.gameNumber && !game.played
+                      ? 'text-white'
+                      : 'text-gray-600'
+                      }`}>
                       #{game.gameNumber}
                     </span>
                     {(game.gameNumber === currentGame.gameNumber && !game.played ? currentGame : game).player !== null && (
@@ -127,26 +126,28 @@ const ScrollableGamesList: React.FC<ScrollableGamesListProps> = ({
                     )}
                     <div className="flex flex-col items-end">
                       {((game.gameNumber === currentGame.gameNumber && !game.played) ? currentGame : game).gameType && (
-                        <span className={`font-medium ${
-                          game.gameNumber === currentGame.gameNumber && !game.played
-                            ? 'text-white'
-                            : (game.gameType === '♥' || game.gameType === '♦')
-                              ? 'text-red-600'
-                              : game.gameType === 'eingepasst'
-                                ? 'text-yellow-700'
-                                : 'text-gray-900'
-                        }`}>
-                          {(game.gameNumber === currentGame.gameNumber && !game.played) ? currentGame.gameType : game.gameType}
+                        <span className={`font-medium ${game.gameNumber === currentGame.gameNumber && !game.played
+                          ? 'text-white'
+                          : (game.gameType === '♥' || game.gameType === '♦')
+                            ? 'text-red-600'
+                            : game.gameType === 'eingepasst'
+                              ? 'text-yellow-700'
+                              : 'text-gray-900'
+                          }`}>
+                          {(game.gameNumber === currentGame.gameNumber && !game.played)
+                            ? currentGame.gameType
+                            : game.gameType === 'eingepasst'
+                              ? game.gameType.toUpperCase()
+                              : game.gameType}
                         </span>
                       )}
-                      {((game.played && game.mitOhne) ||
+                      {((game.played && game.mitOhne && game.gameType !== 'eingepasst') ||
                         (game.gameNumber === currentGame.gameNumber && !game.played && currentGame.gameType && currentGame.gameType !== 'N' &&
                           currentGame.gameType !== 'eingepasst' && currentGame.mitOhne)) && (
-                          <span className={`text-xs ${
-                            game.gameNumber === currentGame.gameNumber && !game.played
-                              ? 'text-gray-300'
-                              : 'text-gray-500'
-                          }`}>
+                          <span className={`text-xs ${game.gameNumber === currentGame.gameNumber && !game.played
+                            ? 'text-gray-300'
+                            : 'text-gray-500'
+                            }`}>
                             {((game.gameNumber === currentGame.gameNumber && !game.played) ? currentGame : game).mitOhne} ×
                             {((game.gameNumber === currentGame.gameNumber && !game.played) ? currentGame : game).multiplier || 1}
                           </span>
@@ -158,11 +159,10 @@ const ScrollableGamesList: React.FC<ScrollableGamesListProps> = ({
                 {((game.played || game.gameNumber === currentGame.gameNumber) &&
                   ((game.gameNumber === currentGame.gameNumber && !game.played) ? currentGame : game).gameType !== 'eingepasst') && (
                     <div className="mt-1 flex justify-between items-center">
-                      <div className={`flex gap-1 ${
-                        game.gameNumber === currentGame.gameNumber && !game.played
-                          ? 'text-gray-300'
-                          : 'text-gray-500'
-                      }`}>
+                      <div className={`flex gap-1 ${game.gameNumber === currentGame.gameNumber && !game.played
+                        ? 'text-gray-300'
+                        : 'text-gray-500'
+                        }`}>
                         {getGameModifiers(game.gameNumber === currentGame.gameNumber && !game.played ? currentGame : game)}
                       </div>
                       {game.played && (

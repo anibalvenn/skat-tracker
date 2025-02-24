@@ -41,7 +41,7 @@ const SkatListDisplay: React.FC<{
       <div className="flex flex-col h-screen bg-gray-50">
         {/* Fixed Header Section */}
         <div className="flex-none bg-white border-b">
-          <GameHeader seriesId={seriesId} tischId={tischId} />
+          <GameHeader seriesId={seriesId} tischId={tischId} listId={0} totalGames={0} playedGames={0} date={''} />
           <div className="px-2 py-1">
             <PlayersList
               players={displayPlayers}

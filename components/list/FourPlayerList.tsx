@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { GameHeader } from '../game/GameHeader';
 import { PlayersList } from '../game/PlayersList';
 import { GameControls } from '../game/GameControls';
 import ScrollableGamesList from '../game/ScrollableGamesList';
 import { useGameState } from 'hooks/useGameState';
+import { StorageManager, StoredList } from '@/utils/storage';
 
 interface FourPlayerListProps {
   players: string[];
@@ -11,8 +12,7 @@ interface FourPlayerListProps {
   totalGames: number;
   seriesId?: string | null;
   tischId?: string | null;
-  listId?: number;  // Add this
-
+  listId?: number;
 }
 
 const FourPlayerList: React.FC<FourPlayerListProps> = ({
@@ -22,8 +22,8 @@ const FourPlayerList: React.FC<FourPlayerListProps> = ({
   seriesId = null,
   tischId = null,
   listId
-  
 }) => {
+  const [currentList, setCurrentList] = useState<StoredList | null>(null);
   const displayPlayers = players.length > 0 ? players : Array(numPlayers).fill('');
 
   const {
@@ -44,32 +44,47 @@ const FourPlayerList: React.FC<FourPlayerListProps> = ({
     listId
   });
 
+  useEffect(() => {
+    const loadCurrentList = async () => {
+      const list = await StorageManager.getCurrentList();
+      setCurrentList(list);
+    };
+    loadCurrentList();
+  }, []);
+
   return (
     <div className="flex flex-col h-screen bg-gray-50">
       {/* Fixed Header Section */}
       <div className="flex-none bg-white border-b">
-        <GameHeader seriesId={seriesId} tischId={tischId} />
+        <GameHeader
+          seriesId={seriesId}
+          tischId={tischId}
+          listId={currentList?.id || 0}
+          totalGames={totalGames}
+          playedGames={games.filter(g => g.played).length}
+          date={currentList?.date || new Date().toISOString()}
+        />
         <div className="px-2 py-1">
-          <PlayersList 
-            players={displayPlayers} 
+          <PlayersList
+            players={displayPlayers}
             playerCounts={playerCounts}
             currentDealer={currentGame.dealer}
           />
         </div>
       </div>
-      
+
       {/* Scrollable Games List */}
       <div className="flex-1 overflow-hidden">
-        <ScrollableGamesList 
+        <ScrollableGamesList
           games={games}
           currentGame={currentGame}
           displayPlayers={displayPlayers}
           onEditGame={startEditingGame}
-          isThreePlayerMode={false} 
+          isThreePlayerMode={false}
           onCancelEdit={cancelEditing}
         />
       </div>
-      
+
       {/* Fixed Footer Section */}
       <div className="flex-none bg-white border-t">
         <GameControls

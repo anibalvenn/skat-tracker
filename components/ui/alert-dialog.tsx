@@ -90,13 +90,13 @@ export function AlertDialogDescription({ children }: AlertDialogDescriptionProps
   );
 }
 
-export function AlertDialogAction({ children, className, ...props }: AlertDialogActionProps) {
+export function AlertDialogAction({ children, className = '', ...props }: AlertDialogActionProps) {
   return (
     <button
-      className="inline-flex h-10 items-center justify-center rounded-md bg-red-600 px-4 py-2 
+      className={`inline-flex h-10 items-center justify-center rounded-md bg-red-600 px-4 py-2 
                  text-sm font-semibold text-white transition-colors 
                  hover:bg-red-700 focus:outline-none focus:ring-2 
-                 focus:ring-red-400 focus:ring-offset-2"
+                 focus:ring-red-400 focus:ring-offset-2 ${className}`}
       {...props}
     >
       {children}
@@ -104,14 +104,14 @@ export function AlertDialogAction({ children, className, ...props }: AlertDialog
   );
 }
 
-export function AlertDialogCancel({ children, className, ...props }: AlertDialogCancelProps) {
+export function AlertDialogCancel({ children, className = '', ...props }: AlertDialogCancelProps) {
   return (
     <button
-      className="inline-flex h-10 items-center justify-center rounded-md border 
+      className={`inline-flex h-10 items-center justify-center rounded-md border 
                  border-gray-200 bg-white px-4 py-2 text-sm font-semibold 
                  text-gray-900 transition-colors hover:bg-gray-100 
                  focus:outline-none focus:ring-2 focus:ring-gray-400 
-                 focus:ring-offset-2 sm:mt-0"
+                 focus:ring-offset-2 sm:mt-0 ${className}`}
       {...props}
     >
       {children}

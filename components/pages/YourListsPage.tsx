@@ -48,7 +48,7 @@ export default function YourListsPage() {
       totalGames: list.totalGames,
       games: list.games
     });
-    
+
     router.push(
       `/list/${mode}?players=${playersParam}&listId=${list.id}&totalGames=${list.totalGames}`
     );
@@ -101,13 +101,19 @@ export default function YourListsPage() {
           lists.map((list) => (
             <div
               key={list.id}
-              className={`bg-white rounded-lg shadow-sm p-4 ${
-                list.status === 'in_progress' ? 'ring-2 ring-green-500' : ''
-              }`}
+              className={`bg-white rounded-lg shadow-sm p-4 ${list.status === 'in_progress' ? 'ring-2 ring-green-500' : ''
+                }`}
             >
               <div className="flex justify-between items-start">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
+                    {/* List ID with custom styling */}
+                    <div className="flex-shrink-0 w-16 h-6 rounded-lg bg-gray-900 text-white 
+                  flex flex-col items-center justify-center leading-tight">
+                      <span className="text-lg font-bold">#{list.id}</span>
+                    </div>
+
+                    {/* Mode icon */}
                     {list.mode === '3er' ? (
                       <Triangle className="w-4 h-4 text-blue-500" />
                     ) : (
@@ -121,15 +127,14 @@ export default function YourListsPage() {
                     {list.players.join(' • ')}
                   </div>
                   <div className="flex items-center gap-4 text-sm text-gray-600">
-                    <span className={`px-2 py-0.5 rounded-full text-xs ${
-                      list.status === 'in_progress'
+                    <span className={`px-2 py-0.5 rounded-full text-xs ${list.status === 'in_progress'
                         ? 'bg-green-100 text-green-800'
                         : list.status === 'completed'
-                        ? 'bg-blue-100 text-blue-800'
-                        : 'bg-gray-100 text-gray-800'
-                    }`}>
-                      {list.status.replace('_', ' ').charAt(0).toUpperCase() + 
-                       list.status.slice(1).replace('_', ' ')}
+                          ? 'bg-blue-100 text-blue-800'
+                          : 'bg-gray-100 text-gray-800'
+                      }`}>
+                      {list.status.replace('_', ' ').charAt(0).toUpperCase() +
+                        list.status.slice(1).replace('_', ' ')}
                     </span>
                     <span>
                       {list.playedGames}/{list.totalGames} games
