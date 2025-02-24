@@ -1,9 +1,27 @@
-// src/hooks/useGameState.ts
+// src/hooks/useGameState.ts with lastUpdated tracking
 import { useState, useCallback, useEffect } from 'react';
 import { Game, PlayerCount, GameType } from '../types';
 import { calculatePoints } from '../utils/skatScoring';
 import { updatePlayerPoints } from '../services/skatApi';
 import { StorageManager } from '@/utils/storage';
+
+// Add lastUpdated to the return type
+interface GameStateReturn {
+  currentGame: Game;
+  setCurrentGame: React.Dispatch<React.SetStateAction<Game>>;
+  games: Game[];
+  playerCounts: PlayerCount[];
+  handleGameComplete: () => Promise<void>;
+  handleGameTypeSelect: (type: GameType) => void;
+  startEditingGame: (gameNumber: number) => void;
+  cancelEditing: () => void;
+  isEditing: boolean;
+  isLoading?: boolean;
+  lastUpdated: {
+    playerId: number;
+    statType: 'wonCount' | 'lostCount';
+  } | null;
+}
 
 interface GameStateProps {
   numPlayers: number;
@@ -38,7 +56,7 @@ export const useGameState = ({
   seriesId,
   tischId,
   listId
-}: GameStateProps) => {
+}: GameStateProps): GameStateReturn => {
   const [currentGame, setCurrentGame] = useState<Game>(initialGameState);
   const [games, setGames] = useState<Game[]>([]);
   const [playerCounts, setPlayerCounts] = useState<PlayerCount[]>([]);
@@ -46,8 +64,18 @@ export const useGameState = ({
     game: Game;
     currentGame: Game;
     playerCounts: PlayerCount[];
+    lastUpdated: {
+      playerId: number;
+      statType: 'wonCount' | 'lostCount';
+    } | null;
   } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Add state for tracking last updated player and stat
+  const [lastUpdated, setLastUpdated] = useState<{
+    playerId: number;
+    statType: 'wonCount' | 'lostCount';
+  } | null>(null);
 
   // Create a memoized function to generate initial games
   const createInitialGames = useCallback(() => {
@@ -126,7 +154,7 @@ export const useGameState = ({
     };
 
     loadStoredData();
-  }, [listId, createInitialGames, createInitialPlayerCounts]);
+  }, [listId, createInitialGames, createInitialPlayerCounts, numPlayers, totalGames]);
 
   // Helper function to revert points for a player
   const revertPlayerPoints = (
@@ -169,6 +197,12 @@ export const useGameState = ({
       updatedStats[game.player!].wonCount++;
       updatedStats[game.player!].basePoints += points.basePoints;
       updatedStats[game.player!].totalPoints += points.totalPoints;
+      
+      // Update lastUpdated for the won game
+      setLastUpdated({
+        playerId: game.player!,
+        statType: 'wonCount'
+      });
     } else {
       updatedStats[game.player!].lostCount++;
       // For lost games, we subtract the points
@@ -177,10 +211,16 @@ export const useGameState = ({
 
       // Add defender points to other players
       for (let i = 0; i < numPlayers; i++) {
-        if (i !== game.player ) {
+        if (i !== game.player) {
           updatedStats[i].totalPoints += points.defendersPoints || 0;
         }
       }
+      
+      // Update lastUpdated for the lost game
+      setLastUpdated({
+        playerId: game.player!,
+        statType: 'lostCount'
+      });
     }
     
     return updatedStats;
@@ -214,6 +254,7 @@ export const useGameState = ({
       setGames(updatedGames);
       setCurrentGame(editingGameBackup.currentGame);
       setPlayerCounts(editingGameBackup.playerCounts);
+      setLastUpdated(editingGameBackup.lastUpdated); // Restore lastUpdated state
       setEditingGameBackup(null);
     }
   }, [editingGameBackup, games]);
@@ -221,11 +262,12 @@ export const useGameState = ({
   const startEditingGame = useCallback((gameNumber: number) => {
     const gameToEdit = games[gameNumber - 1];
   
-    // Store backup of current state
+    // Store backup of current state including lastUpdated
     setEditingGameBackup({
       game: { ...gameToEdit },
       currentGame: { ...currentGame },
-      playerCounts: playerCounts.map(count => ({ ...count }))
+      playerCounts: playerCounts.map(count => ({ ...count })),
+      lastUpdated // Store lastUpdated in backup
     });
     
     // Mark game as being edited and set it as current
@@ -236,13 +278,10 @@ export const useGameState = ({
   
     setGames(updatedGames);
     setCurrentGame({ ...gameToEdit, isEditing: true });
-  }, [games, currentGame, playerCounts]);
-
-
+  }, [games, currentGame, playerCounts, lastUpdated]);
 
   const handleGameComplete = useCallback(async (): Promise<void> => {
     if (!currentGame.played && currentGame.gameType !== 'eingepasst') return;
-    console.log('245', currentGame)
 
     const gameIndex = currentGame.gameNumber - 1;
     let newGames = [...games];
@@ -257,8 +296,12 @@ export const useGameState = ({
       }
     }
 
-    // Apply the new/updated game points
-    if (currentGame.player !== null && currentGame.gameType !== 'eingepasst') {
+    // For eingepasst games, clear any highlighting
+    if (currentGame.gameType === 'eingepasst') {
+      setLastUpdated(null);
+    } 
+    // Apply the new/updated game points for non-eingepasst games
+    else if (currentGame.player !== null) {
       const points = calculatePoints(currentGame);
       newPlayerCounts = applyPlayerPoints(currentGame, points, newPlayerCounts);
 
@@ -350,6 +393,7 @@ export const useGameState = ({
     startEditingGame,
     cancelEditing,
     isEditing: !!currentGame.isEditing,
-    isLoading
+    isLoading,
+    lastUpdated
   };
 };

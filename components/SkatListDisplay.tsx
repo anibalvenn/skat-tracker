@@ -3,6 +3,7 @@ import React from 'react';
 import { useGameState } from '../hooks/useGameState';
 import { GameHeader, PlayersList, GameControls } from './game';
 import ScrollableGamesList from './game/ScrollableGamesList';
+import { ThreePlayersList } from './game/ThreePlayersList';
 
 const SkatListDisplay: React.FC<{
   numPlayers?: number;
@@ -29,7 +30,8 @@ const SkatListDisplay: React.FC<{
       handleGameComplete,
       startEditingGame,
       cancelEditing,
-      isEditing
+      isEditing,
+      lastUpdated
     } = useGameState({
       numPlayers,
       totalGames,
@@ -41,26 +43,35 @@ const SkatListDisplay: React.FC<{
       <div className="flex flex-col h-screen bg-gray-50">
         {/* Fixed Header Section */}
         <div className="flex-none bg-white border-b">
-          <GameHeader seriesId={seriesId} tischId={tischId} listId={0} totalGames={0} playedGames={0} date={''} />
+          <GameHeader seriesId={seriesId} tischId={tischId} listId={0} totalGames={totalGames} playedGames={games.filter(g => g.played).length} date={new Date().toISOString()} />
           <div className="px-2 py-1">
-            <PlayersList
-              players={displayPlayers}
-              playerCounts={playerCounts}
-              currentDealer={currentGame.dealer}
-            />
+            {isThreePlayerMode ? (
+              <ThreePlayersList
+                players={displayPlayers}
+                playerCounts={playerCounts}
+                currentDealer={currentGame.dealer}
+                lastUpdated={lastUpdated}
+              />
+            ) : (
+              <PlayersList
+                players={displayPlayers}
+                playerCounts={playerCounts}
+                currentDealer={currentGame.dealer}
+                lastUpdated={lastUpdated}
+              />
+            )}
           </div>
         </div>
 
         {/* Scrollable Games List with Safe Areas */}
         <div className="flex-1 overflow-hidden">
-          <ScrollableGamesList
+          <ScrollableGamesList 
             games={games}
             currentGame={currentGame}
             displayPlayers={displayPlayers}
             onEditGame={startEditingGame}
-            onCancelEdit={cancelEditing}  // Pass it here
+            onCancelEdit={cancelEditing}
             isThreePlayerMode={isThreePlayerMode}
-
           />
         </div>
 

@@ -35,7 +35,8 @@ const FourPlayerList: React.FC<FourPlayerListProps> = ({
     handleGameComplete,
     startEditingGame,
     cancelEditing,
-    isEditing
+    isEditing,
+    lastUpdated
   } = useGameState({
     numPlayers,
     totalGames,
@@ -69,6 +70,7 @@ const FourPlayerList: React.FC<FourPlayerListProps> = ({
             players={displayPlayers}
             playerCounts={playerCounts}
             currentDealer={currentGame.dealer}
+            lastUpdated={lastUpdated}
           />
         </div>
       </div>

@@ -35,7 +35,8 @@ const ThreePlayerList: React.FC<ThreePlayerListProps> = ({
     handleGameComplete,
     startEditingGame,
     cancelEditing,
-    isEditing
+    isEditing,
+    lastUpdated
   } = useGameState({
     numPlayers,
     totalGames,
@@ -69,6 +70,7 @@ const ThreePlayerList: React.FC<ThreePlayerListProps> = ({
             players={displayPlayers}
             playerCounts={playerCounts}
             currentDealer={currentGame.dealer}
+            lastUpdated={lastUpdated}
           />
         </div>
       </div>

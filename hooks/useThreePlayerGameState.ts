@@ -55,6 +55,16 @@ export const useThreePlayerGameState = ({
     game: Game;
     currentGame: Game;
     playerCounts: PlayerCount[];
+    lastUpdated: {
+      playerId: number;
+      statType: 'wonCount' | 'lostCount';
+    } | null;
+  } | null>(null);
+  
+  // Add state for tracking last updated player and stat
+  const [lastUpdated, setLastUpdated] = useState<{
+    playerId: number;
+    statType: 'wonCount' | 'lostCount';
   } | null>(null);
 
   // Helper function to revert points for a player in 3-player mode
@@ -98,6 +108,12 @@ export const useThreePlayerGameState = ({
       updatedStats[game.player!].wonCount++;
       updatedStats[game.player!].basePoints += points.basePoints;
       updatedStats[game.player!].totalPoints += points.totalPoints;
+      
+      // Update lastUpdated for the won game
+      setLastUpdated({
+        playerId: game.player!,
+        statType: 'wonCount'
+      });
     } else {
       updatedStats[game.player!].lostCount++;
       updatedStats[game.player!].basePoints -= Math.abs(points.basePoints);
@@ -109,6 +125,12 @@ export const useThreePlayerGameState = ({
           updatedStats[i].totalPoints += points.defendersPoints || 0;
         }
       }
+      
+      // Update lastUpdated for the lost game
+      setLastUpdated({
+        playerId: game.player!,
+        statType: 'lostCount'
+      });
     }
     
     return updatedStats;
@@ -130,8 +152,12 @@ export const useThreePlayerGameState = ({
       }
     }
 
-    // Apply new/updated game points
-    if (currentGame.player !== null && currentGame.gameType !== 'eingepasst') {
+    // For eingepasst games, clear any highlighting
+    if (currentGame.gameType === 'eingepasst') {
+      setLastUpdated(null);
+    } 
+    // Apply new/updated game points for non-eingepasst games
+    else if (currentGame.player !== null) {
       const points = calculateThreePlayerPoints(currentGame);
       newPlayerCounts = applyPlayerPoints(currentGame, points, newPlayerCounts);
 
@@ -216,7 +242,8 @@ export const useThreePlayerGameState = ({
     setEditingGameBackup({
       game: { ...gameToEdit },
       currentGame: { ...currentGame },
-      playerCounts: playerCounts.map(count => ({ ...count }))
+      playerCounts: playerCounts.map(count => ({ ...count })),
+      lastUpdated
     });
     
     const updatedGames = games.map(game => ({
@@ -226,7 +253,7 @@ export const useThreePlayerGameState = ({
 
     setGames(updatedGames);
     setCurrentGame({ ...gameToEdit, isEditing: true });
-  }, [games, currentGame, playerCounts]);
+  }, [games, currentGame, playerCounts, lastUpdated]);
 
   const cancelEditing = useCallback(() => {
     if (editingGameBackup) {
@@ -239,6 +266,7 @@ export const useThreePlayerGameState = ({
       setGames(updatedGames);
       setCurrentGame(editingGameBackup.currentGame);
       setPlayerCounts(editingGameBackup.playerCounts);
+      setLastUpdated(editingGameBackup.lastUpdated);
       setEditingGameBackup(null);
     }
   }, [editingGameBackup, games]);
@@ -252,6 +280,7 @@ export const useThreePlayerGameState = ({
     handleGameTypeSelect,
     startEditingGame,
     cancelEditing,
-    isEditing: !!currentGame.isEditing
+    isEditing: !!currentGame.isEditing,
+    lastUpdated
   };
 };

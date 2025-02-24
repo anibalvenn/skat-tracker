@@ -29,7 +29,8 @@ const ThreePlayerScorer: React.FC<ThreePlayerScorerProps> = ({
     handleGameComplete,
     startEditingGame,
     cancelEditing,
-    isEditing
+    isEditing,
+    lastUpdated
   } = useThreePlayerGameState({
     numPlayers: 3,
     totalGames,
@@ -41,12 +42,13 @@ const ThreePlayerScorer: React.FC<ThreePlayerScorerProps> = ({
     <div className="flex flex-col h-screen bg-gray-50">
       {/* Fixed Header Section */}
       <div className="flex-none bg-white border-b">
-        <GameHeader seriesId={seriesId} tischId={tischId} listId={0} totalGames={0} playedGames={0} date={''} />
+        <GameHeader seriesId={seriesId} tischId={tischId} listId={0} totalGames={totalGames} playedGames={games.filter(g => g.played).length} date={new Date().toISOString()} />
         <div className="px-2 py-1">
           <ThreePlayersList 
             players={displayPlayers} 
             playerCounts={playerCounts}
             currentDealer={currentGame.dealer}
+            lastUpdated={lastUpdated}
           />
         </div>
       </div>
@@ -59,7 +61,7 @@ const ThreePlayerScorer: React.FC<ThreePlayerScorerProps> = ({
           displayPlayers={displayPlayers}
           onEditGame={startEditingGame}
           isThreePlayerMode={true}
-          onCancelEdit={cancelEditing}  // Pass it here
+          onCancelEdit={cancelEditing}
           />
       </div>
       
