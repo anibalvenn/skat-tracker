@@ -131,7 +131,8 @@ export class StorageManager {
   static async updateGameInList(
     listId: number,
     game: Game,
-    playerCounts: PlayerCount[]
+    playerCounts: PlayerCount[],
+    status?: 'in_progress' | 'completed' | 'abandoned'
   ): Promise<void> {
     try {
       console.log('137', game)

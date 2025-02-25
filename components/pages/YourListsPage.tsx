@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { StorageManager, StoredList } from '@/utils/storage';
-import { Triangle, Square, Trash2, Edit, AlertCircle, ArrowLeft } from 'lucide-react';
+import { Triangle, Square, Trash2, Edit, AlertCircle, ArrowLeft, CheckCircle } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '../ui/alert-dialog';
 
 
@@ -101,8 +101,9 @@ export default function YourListsPage() {
           lists.map((list) => (
             <div
               key={list.id}
-              className={`bg-white rounded-lg shadow-sm p-4 ${list.status === 'in_progress' ? 'ring-2 ring-green-500' : ''
-                }`}
+              className={`bg-white rounded-lg shadow-sm p-4 
+                ${list.status === 'in_progress' ? 'ring-2 ring-green-500' : 
+                  list.status === 'completed' ? 'ring-2 ring-blue-500 bg-blue-50' : ''}`}
             >
               <div className="flex justify-between items-start">
                 <div className="space-y-1">
@@ -122,30 +123,52 @@ export default function YourListsPage() {
                     <span className="text-sm text-gray-500">
                       {formatDate(list.date)}
                     </span>
+                    
+                    {/* Completed indicator */}
+                    {list.status === 'completed' && (
+                      <CheckCircle className="w-4 h-4 text-blue-600" />
+                    )}
                   </div>
                   <div className="font-medium">
                     {list.players.join(' • ')}
                   </div>
                   <div className="flex items-center gap-4 text-sm text-gray-600">
-                    <span className={`px-2 py-0.5 rounded-full text-xs ${list.status === 'in_progress'
+                    <span className={`px-2 py-0.5 rounded-full text-xs 
+                      ${list.status === 'in_progress'
                         ? 'bg-green-100 text-green-800'
                         : list.status === 'completed'
-                          ? 'bg-blue-100 text-blue-800'
+                          ? 'bg-blue-100 text-blue-800 font-medium'
                           : 'bg-gray-100 text-gray-800'
                       }`}>
-                      {list.status.replace('_', ' ').charAt(0).toUpperCase() +
-                        list.status.slice(1).replace('_', ' ')}
+                      {list.status === 'completed' 
+                        ? 'Completed' 
+                        : list.status === 'in_progress' 
+                          ? 'In Progress'
+                          : 'Abandoned'}
                     </span>
-                    <span>
-                      {list.playedGames}/{list.totalGames} games
-                    </span>
+                    <div className={`flex items-center ${
+                      list.status === 'completed' ? 'font-semibold' : ''
+                    }`}>
+                      <span>
+                        {list.playedGames}/{list.totalGames} games
+                      </span>
+                      {list.status === 'completed' && (
+                        <span className="ml-1 text-blue-600">
+                          (100%)
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => handleOpen(list)}
-                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-full"
+                    className={`p-2 rounded-full ${
+                      list.status === 'completed' 
+                        ? 'text-blue-600 hover:bg-blue-100' 
+                        : 'text-blue-600 hover:bg-blue-50'
+                    }`}
                   >
                     <Edit className="w-5 h-5" />
                   </button>

@@ -7,6 +7,7 @@ import { GameTypeSelection } from './GameTypeSelection';
 import { ThreePlayerSelection } from './ThreePlayerSelection';
 import { FourPlayerSelection } from './FourPlayerSelection';
 import { MitOhneSelection } from './MitOhneSelection';
+import { GameOutcomeSelection } from './GameOutcomeSelection';
 import {
   ArrowLeft,
   ArrowRight,
@@ -26,32 +27,49 @@ interface GameControlsProps {
   onCancelEdit?: () => void;
   isEditing: boolean;
   isThreePlayerMode: boolean;
+  totalGames?: number;
+  playedGames?: number;
 }
-
 export const GameControls: React.FC<GameControlsProps> = ({
   currentGame,
   setCurrentGame,
   handleGameComplete,
   handleGameTypeSelect,
   displayPlayers,
+  onCancelEdit,
   isEditing,
   isThreePlayerMode
 }) => {
-  const [showMitOhne, setShowMitOhne] = useState(false);
+  // Step management: null means player selection, 
+  // 'type' means game type selection
+  // 'mitohne' means mitohne selection
+  // 'modifiers' means game modifiers selection
+  // 'outcome' means game outcome (won/lost) selection
+  const [gameStep, setGameStep] = useState<'type' | 'mitohne' | 'modifiers' | 'outcome' | null>(null);
 
-  // Reset MitOhne view when game changes
+  // Helper function to determine which step we're on
   useEffect(() => {
-    if (currentGame.gameNumber === 1 || !currentGame.played) {
-      setShowMitOhne(false);
+    if (currentGame.player === null) {
+      setGameStep(null);
+    } else if (!currentGame.gameType) {
+      setGameStep('type');
+    } else if (currentGame.gameType !== 'N' && currentGame.gameType !== 'eingepasst' && gameStep === 'type') {
+      // Only transition to mitohne from type selection, not automatically when mitOhne changes
+      setGameStep('mitohne');
+    } else if (currentGame.gameType === 'N' || currentGame.gameType === 'eingepasst' || gameStep === 'mitohne' || gameStep === 'modifiers') {
+      if (!currentGame.played) {
+        // Keep the current step (mitohne or modifiers) unless we're coming from type selection with N or eingepasst
+        if ((currentGame.gameType === 'N' || currentGame.gameType === 'eingepasst') && gameStep === 'type') {
+          setGameStep('modifiers');
+        }
+        // Otherwise, stay on the current step - we only move via Next/Back buttons
+      } else {
+        setGameStep('outcome');
+      }
+    } else {
+      setGameStep('outcome');
     }
-  }, [currentGame.gameNumber, currentGame.played]);
-
-  // If editing and game has mitOhne set, show that screen
-  useEffect(() => {
-    if (isEditing && currentGame.mitOhne) {
-      setShowMitOhne(true);
-    }
-  }, [isEditing, currentGame.mitOhne]);
+  }, [currentGame.player, currentGame.gameType, currentGame.played, gameStep]);
 
   // Helper function to determine which modifiers to show
   const getVisibleModifiers = () => {
@@ -91,15 +109,28 @@ export const GameControls: React.FC<GameControlsProps> = ({
   };
 
   const handleNextAfterModifiers = () => {
-    setShowMitOhne(true);
+    setGameStep('outcome');
+  };
+
+  const handleNextAfterMitOhne = () => {
+    setGameStep('modifiers');
   };
 
   const handleBack = () => {
-    if (showMitOhne) {
-      setShowMitOhne(false);
-    } else if (currentGame.gameType) {
-      setCurrentGame(prev => ({ ...prev, gameType: '' }));
-    } else if (currentGame.player !== null) {
+    if (gameStep === 'outcome') {
+      setGameStep('modifiers');
+    } else if (gameStep === 'modifiers') {
+      if (currentGame.gameType !== 'N' && currentGame.gameType !== 'eingepasst') {
+        setGameStep('mitohne');
+      } else {
+        setGameStep('type');
+      }
+    } else if (gameStep === 'mitohne') {
+      setGameStep('type');
+    } else if (gameStep === 'type') {
+      setCurrentGame(prev => ({ ...prev, player: null }));
+      setGameStep(null);
+    } else {
       setCurrentGame(prev => ({ ...prev, player: null }));
     }
   };
@@ -109,44 +140,65 @@ export const GameControls: React.FC<GameControlsProps> = ({
 
   return (
     <div className="relative bg-white border-t p-2">
-      {/* Edit Mode Header */}
-
-
       <div className="space-y-2">
         {/* Header Text */}
         <div className="text-center text-sm font-medium mb-3">
-          {currentGame.player === null ? (
+          {/* Step 1: Player Selection */}
+          {gameStep === null && (
             isThreePlayerMode ? (
               <> Who plays? </>
             ) : (
               <>{displayPlayers[currentGame.dealer] || `Player ${currentGame.dealer + 1}`} deals. Who plays?</>
             )
-          ) : !currentGame.gameType ? (
-            <>{displayPlayers[currentGame.player] || `Player ${currentGame.player + 1}`} plays what?</>
-          ) : !showMitOhne ? (
-            <>Details of {displayPlayers[currentGame.player] || `Player ${currentGame.player + 1}`}'s {currentGame.gameType}:</>
-          ) : (
+          )}
+          
+          {/* Step 2: Game Type Selection */}
+          {gameStep === 'type' && (
+            <>{displayPlayers[currentGame.player!] || `Player ${currentGame.player! + 1}`} plays what?</>
+          )}
+          
+          {/* Step 3: Mit/Ohne Selection (for non-Null games) */}
+          {gameStep === 'mitohne' && (
+            <>{displayPlayers[currentGame.player!] || `Player ${currentGame.player! + 1}`}'s {currentGame.gameType} - Mit or Ohne?</>
+          )}
+          
+          {/* Step 4: Modifiers Selection */}
+          {gameStep === 'modifiers' && (
+            <>Details of {displayPlayers[currentGame.player!] || `Player ${currentGame.player! + 1}`}'s {currentGame.gameType}:</>
+          )}
+          
+          {/* Step 5: Game Outcome Selection */}
+          {gameStep === 'outcome' && (
             <div className="break-words flex items-center gap-2 justify-center flex-wrap">
               <span>
-                {isEditing ? 'Update' : 'Summarizing'} {displayPlayers[currentGame.player] || `Player ${currentGame.player + 1}`}'s {currentGame.gameType}
+                {isEditing ? 'Update' : 'Outcome of'} {displayPlayers[currentGame.player!] || `Player ${currentGame.player! + 1}`}'s {currentGame.gameType}
               </span>
               <div className="flex gap-1 items-center">
                 {getVisibleModifiers()}
               </div>
+              {currentGame.mitOhne && currentGame.gameType !== 'N' && (
+                <span className="text-xs text-gray-600">
+                  {currentGame.mitOhne} × {currentGame.multiplier || 1}
+                </span>
+              )}
             </div>
           )}
         </div>
 
         {/* Game Control Steps */}
         <div className="space-y-2">
-          {currentGame.player === null ? (
+          {/* Step 1: Player Selection */}
+          {gameStep === null && (
             <PlayerSelectionComponent
               currentGame={currentGame}
               setCurrentGame={setCurrentGame}
               handleGameComplete={handleGameComplete}
               displayPlayers={displayPlayers}
             />
-          ) : !currentGame.gameType ? (
+          )}
+          
+          {/* Step 2: Game Type Selection */}
+          {gameStep === 'type' && (
             <>
               <GameTypeSelection
                 currentGame={currentGame}
@@ -157,16 +209,33 @@ export const GameControls: React.FC<GameControlsProps> = ({
                 <BackButton onClick={handleBack} />
               </div>
             </>
-          ) : showMitOhne ? (
-            <MitOhneSelection
-              currentGame={currentGame}
-              setCurrentGame={setCurrentGame}
-              handleGameComplete={handleGameComplete}
-              onBack={handleBack}
-              isEditing={isEditing}
-              isThreePlayerMode={isThreePlayerMode}
-            />
-          ) : (
+          )}
+          
+          {/* Step 3: Mit/Ohne Selection */}
+          {gameStep === 'mitohne' && (
+            <div className="space-y-2">
+              <MitOhneSelection
+                currentGame={currentGame}
+                setCurrentGame={setCurrentGame}
+                showWinLoss={false}
+              />
+              <div className="grid grid-cols-2 gap-2">
+                <BackButton onClick={handleBack} />
+                <button
+                  onClick={handleNextAfterMitOhne}
+                  className="w-full p-2 bg-green-500 text-white rounded text-sm 
+                           hover:bg-green-600 active:bg-green-700 
+                           flex items-center justify-center gap-2"
+                >
+                  Next
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
+          
+          {/* Step 4: Game Modifiers */}
+          {gameStep === 'modifiers' && (
             <>
               <GameModifiers
                 currentGame={currentGame}
@@ -185,6 +254,17 @@ export const GameControls: React.FC<GameControlsProps> = ({
                 </button>
               </div>
             </>
+          )}
+          
+          {/* Step 5: Game Outcome */}
+          {gameStep === 'outcome' && (
+            <GameOutcomeSelection
+              currentGame={currentGame}
+              setCurrentGame={setCurrentGame}
+              handleGameComplete={handleGameComplete}
+              onBack={handleBack}
+              isThreePlayerMode={isThreePlayerMode}
+            />
           )}
         </div>
       </div>

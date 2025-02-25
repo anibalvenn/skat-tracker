@@ -17,10 +17,26 @@ const LIST_FRACTIONS = [
 export default function SetupPage() {
   const router = useRouter();
   const [mode, setMode] = useState<'3er' | '4er'>('3er');
-  const [players, setPlayers] = useState<string[]>(() => 
-    Array(mode === '3er' ? 3 : 4).fill('')
-  );
-  const [errors, setErrors] = useState<boolean[]>(() => 
+  const [players, setPlayers] = useState<string[]>(() => {
+    // Check for players passed in URL query params
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const playersParam = params.get('players');
+      if (playersParam) {
+        try {
+          const parsedPlayers = JSON.parse(decodeURIComponent(playersParam));
+          if (Array.isArray(parsedPlayers)) {
+            return parsedPlayers;
+          }
+        } catch (e) {
+          console.error('Error parsing players from URL:', e);
+        }
+      }
+    }
+    // Fall back to default empty array based on mode
+    return Array(mode === '3er' ? 3 : 4).fill('');
+  });
+  const [errors, setErrors] = useState<boolean[]>(() =>
     Array(mode === '3er' ? 3 : 4).fill(false)
   );
   const [selectedFraction, setSelectedFraction] = useState<number>(1);
@@ -75,17 +91,17 @@ export default function SetupPage() {
       alert('All players must have at least 3 characters');
       return;
     }
-  
+
     try {
       // Create new list in storage and get the new list with its ID
       const totalGames = getTotalGames();
-      const finalPlayers = players.map((player, index) => 
+      const finalPlayers = players.map((player, index) =>
         player || `Player ${index + 1}`
       );
-      
+
       // Get the newly created list which includes its ID
       const newList = await StorageManager.createList(finalPlayers, mode, totalGames);
-      
+
       // Navigate to list page WITH the listId
       router.push(
         `/list/${mode}?players=${encodeURIComponent(JSON.stringify(finalPlayers))}` +
@@ -95,7 +111,7 @@ export default function SetupPage() {
       console.error('Error creating list:', error);
       alert('Failed to create list. Please try again.');
     }
-};
+  };
 
   return (
     <main className="min-h-screen flex flex-col bg-gray-50">
@@ -111,8 +127,8 @@ export default function SetupPage() {
           <button
             onClick={() => setMode('3er')}
             className={`p-4 rounded-lg flex items-center justify-center gap-2 transition-all
-              ${mode === '3er' 
-                ? 'bg-blue-500 text-white shadow-md scale-105' 
+              ${mode === '3er'
+                ? 'bg-blue-500 text-white shadow-md scale-105'
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
           >
             <Triangle className="w-5 h-5" />
@@ -122,8 +138,8 @@ export default function SetupPage() {
           <button
             onClick={() => setMode('4er')}
             className={`p-4 rounded-lg flex items-center justify-center gap-2 transition-all
-              ${mode === '4er' 
-                ? 'bg-blue-500 text-white shadow-md scale-105' 
+              ${mode === '4er'
+                ? 'bg-blue-500 text-white shadow-md scale-105'
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
           >
             <Square className="w-5 h-5" />
@@ -165,13 +181,12 @@ export default function SetupPage() {
                   value={player}
                   onChange={(e) => handleInputChange(index, e.target.value)}
                   placeholder={`Player ${index + 1}`}
-                  className={`w-full p-3 rounded-lg border ${
-                    errors[index]
+                  className={`w-full p-3 rounded-lg border ${errors[index]
                       ? 'border-red-500 bg-red-50'
                       : player && validateInput(player)
                         ? 'border-green-500 bg-green-50'
                         : 'border-gray-300'
-                  } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                    } focus:outline-none focus:ring-2 focus:ring-blue-500`}
                 />
                 {errors[index] && (
                   <p className="text-red-500 text-sm mt-1">

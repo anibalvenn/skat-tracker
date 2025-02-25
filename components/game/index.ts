@@ -5,3 +5,5 @@ export { PlayerSelection } from './PlayerSelection';
 export { GameTypeSelection } from './GameTypeSelection';
 export { GameModifiers } from './GameModifiers';
 export { GamesList } from './GamesList';
+export { MitOhneSelection } from './MitOhneSelection';
+export { GameOutcomeSelection } from './GameOutcomeSelection';

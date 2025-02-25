@@ -95,11 +95,24 @@ export interface GameState {
   totalScore: number;
 }
 
+// Changes needed in types/index.ts:
+
+// Update MitOhneSelectionProps interface
 export interface MitOhneSelectionProps {
+  currentGame: Game;
+  setCurrentGame: React.Dispatch<React.SetStateAction<Game>>;
+  showWinLoss?: boolean;  // Add this property
+  handleGameComplete?: () => Promise<void>;
+  onBack?: () => void;
+  isEditing?: boolean;
+  isThreePlayerMode?: boolean;
+}
+
+// Add new interface for GameOutcomeSelection
+export interface GameOutcomeSelectionProps {
   currentGame: Game;
   setCurrentGame: React.Dispatch<React.SetStateAction<Game>>;
   handleGameComplete: () => Promise<void>;
   onBack: () => void;
-  isEditing: boolean;
   isThreePlayerMode?: boolean;
 }

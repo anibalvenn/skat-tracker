@@ -70,7 +70,7 @@ export const useGameState = ({
     } | null;
   } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   // Add state for tracking last updated player and stat
   const [lastUpdated, setLastUpdated] = useState<{
     playerId: number;
@@ -103,7 +103,7 @@ export const useGameState = ({
         try {
           const lists = await StorageManager.getAllLists();
           const storedList = lists.find(list => list.id === listId);
-          
+
           if (storedList) {
             // Create base games array
             const initialGames = Array(totalGames).fill(null).map((_, index) => ({
@@ -145,7 +145,7 @@ export const useGameState = ({
           gameNumber: index + 1,
           dealer: Math.floor(index / (numPlayers - 1)) % numPlayers
         }));
-        
+
         setGames(freshGames);
         setPlayerCounts(createInitialPlayerCounts());
         setCurrentGame({ ...initialGameState });
@@ -192,12 +192,12 @@ export const useGameState = ({
     playerStats: PlayerCount[]
   ): PlayerCount[] => {
     const updatedStats = [...playerStats];
-    
+
     if (game.won) {
       updatedStats[game.player!].wonCount++;
       updatedStats[game.player!].basePoints += points.basePoints;
       updatedStats[game.player!].totalPoints += points.totalPoints;
-      
+
       // Update lastUpdated for the won game
       setLastUpdated({
         playerId: game.player!,
@@ -215,14 +215,14 @@ export const useGameState = ({
           updatedStats[i].totalPoints += points.defendersPoints || 0;
         }
       }
-      
+
       // Update lastUpdated for the lost game
       setLastUpdated({
         playerId: game.player!,
         statType: 'lostCount'
       });
     }
-    
+
     return updatedStats;
   };
 
@@ -250,7 +250,7 @@ export const useGameState = ({
           ? { ...editingGameBackup.game, isEditing: false }
           : { ...game, isEditing: false }
       );
-  
+
       setGames(updatedGames);
       setCurrentGame(editingGameBackup.currentGame);
       setPlayerCounts(editingGameBackup.playerCounts);
@@ -261,7 +261,7 @@ export const useGameState = ({
 
   const startEditingGame = useCallback((gameNumber: number) => {
     const gameToEdit = games[gameNumber - 1];
-  
+
     // Store backup of current state including lastUpdated
     setEditingGameBackup({
       game: { ...gameToEdit },
@@ -269,13 +269,13 @@ export const useGameState = ({
       playerCounts: playerCounts.map(count => ({ ...count })),
       lastUpdated // Store lastUpdated in backup
     });
-    
+
     // Mark game as being edited and set it as current
     const updatedGames = games.map(game => ({
       ...game,
       isEditing: game.gameNumber === gameNumber
     }));
-  
+
     setGames(updatedGames);
     setCurrentGame({ ...gameToEdit, isEditing: true });
   }, [games, currentGame, playerCounts, lastUpdated]);
@@ -299,7 +299,7 @@ export const useGameState = ({
     // For eingepasst games, clear any highlighting
     if (currentGame.gameType === 'eingepasst') {
       setLastUpdated(null);
-    } 
+    }
     // Apply the new/updated game points for non-eingepasst games
     else if (currentGame.player !== null) {
       const points = calculatePoints(currentGame);
@@ -339,6 +339,7 @@ export const useGameState = ({
       }
 
       // Update storage if listId exists
+      // Update storage if listId exists
       if (listId) {
         try {
           const gameToStore = {
@@ -346,7 +347,17 @@ export const useGameState = ({
             played: true,
             isEditing: false
           };
-          await StorageManager.updateGameInList(listId, gameToStore, newPlayerCounts);
+
+          // Check if this is the last game in the list
+          const isLastGame = games.filter(g => g.played).length === totalGames - 1;
+
+          // Update the game in the list
+          await StorageManager.updateGameInList(
+            listId,
+            gameToStore,
+            newPlayerCounts,
+            isLastGame ? 'completed' : 'in_progress'
+          );
         } catch (error) {
           console.error('Error updating stored list:', error);
         }

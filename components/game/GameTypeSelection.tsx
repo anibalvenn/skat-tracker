@@ -13,10 +13,18 @@ export const GameTypeSelection: React.FC<GameTypeSelectionProps> = ({
   onSelect
 }) => {
   const handleTypeSelect = (type: GameType) => {
-    setCurrentGame(prev => ({
-      ...prev,
-      gameType: type
-    }));
+    setCurrentGame(prev => {
+      // If it's a Null game, set mitOhne to mit
+      // If it's eingepasst, handle similarly
+      // For other game types, we'll handle mitOhne selection in a separate step
+      const mitOhne = type === 'N' || type === 'eingepasst' ? 'mit' : 'mit';  // Default to 'mit' for all game types      
+      return {
+        ...prev,
+        gameType: type,
+        mitOhne: mitOhne,
+        multiplier: 1
+      };
+    });
     
     // Call onSelect if provided
     if (onSelect) {

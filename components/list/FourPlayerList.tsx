@@ -5,6 +5,7 @@ import { GameControls } from '../game/GameControls';
 import ScrollableGamesList from '../game/ScrollableGamesList';
 import { useGameState } from 'hooks/useGameState';
 import { StorageManager, StoredList } from '@/utils/storage';
+import CompletionFooter from '../game/CompletionFooter';
 
 interface FourPlayerListProps {
   players: string[];
@@ -45,13 +46,27 @@ const FourPlayerList: React.FC<FourPlayerListProps> = ({
     listId
   });
 
+  // Check if the list is completed
+  const playedGames = games.filter(g => g.played).length;
+  const isListCompleted = playedGames === totalGames;
+
   useEffect(() => {
     const loadCurrentList = async () => {
-      const list = await StorageManager.getCurrentList();
-      setCurrentList(list);
+      try {
+        if (listId) {
+          const lists = await StorageManager.getAllLists();
+          const list = lists.find(l => l.id === listId);
+          setCurrentList(list || null);
+        } else {
+          const list = await StorageManager.getCurrentList();
+          setCurrentList(list);
+        }
+      } catch (error) {
+        console.error('Error loading list:', error);
+      }
     };
     loadCurrentList();
-  }, []);
+  }, [playedGames, listId]); // Re-run when playedGames or listId changes
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
@@ -62,7 +77,7 @@ const FourPlayerList: React.FC<FourPlayerListProps> = ({
           tischId={tischId}
           listId={currentList?.id || 0}
           totalGames={totalGames}
-          playedGames={games.filter(g => g.played).length}
+          playedGames={playedGames}
           date={currentList?.date || new Date().toISOString()}
         />
         <div className="px-2 py-1">
@@ -88,17 +103,28 @@ const FourPlayerList: React.FC<FourPlayerListProps> = ({
       </div>
 
       {/* Fixed Footer Section */}
-      <div className="flex-none bg-white border-t">
-        <GameControls
-          currentGame={currentGame}
-          setCurrentGame={setCurrentGame}
-          handleGameComplete={handleGameComplete}
-          handleGameTypeSelect={handleGameTypeSelect}
-          displayPlayers={displayPlayers}
-          isEditing={isEditing}
-          onCancelEdit={cancelEditing}
-          isThreePlayerMode={false}
-        />
+      <div className="flex-none">
+        {isListCompleted ? (
+          <CompletionFooter
+            players={displayPlayers}
+            listId={listId}
+            totalGames={totalGames}
+            playedGames={playedGames}
+          />
+        ) : (
+          <GameControls
+            currentGame={currentGame}
+            setCurrentGame={setCurrentGame}
+            handleGameComplete={handleGameComplete}
+            handleGameTypeSelect={handleGameTypeSelect}
+            displayPlayers={displayPlayers}
+            isEditing={isEditing}
+            onCancelEdit={cancelEditing}
+            isThreePlayerMode={false}
+            totalGames={totalGames}
+            playedGames={playedGames}
+          />
+        )}
       </div>
     </div>
   );
