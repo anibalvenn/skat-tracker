@@ -1,9 +1,9 @@
-import { useThreePlayerGameState } from 'hooks/useThreePlayerGameState';
 import React from 'react';
 import { GameControls } from './GameControls';
 import { GameHeader } from './GameHeader';
 import ScrollableGamesList from './ScrollableGamesList';
 import { ThreePlayersList } from './ThreePlayersList';
+import { useGameState } from 'hooks/useGameState';
 
 interface ThreePlayerScorerProps {
   players: string[];
@@ -31,11 +31,12 @@ const ThreePlayerScorer: React.FC<ThreePlayerScorerProps> = ({
     cancelEditing,
     isEditing,
     lastUpdated
-  } = useThreePlayerGameState({
+  } = useGameState({
     numPlayers: 3,
     totalGames,
     seriesId,
-    tischId
+    tischId,
+    isThreePlayerMode:true
   });
 
   return (

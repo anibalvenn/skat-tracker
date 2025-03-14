@@ -43,7 +43,8 @@ const ThreePlayerList: React.FC<ThreePlayerListProps> = ({
     totalGames,
     seriesId,
     tischId,
-    listId
+    listId,
+    isThreePlayerMode: true
   });
 
   // Check if the list is completed

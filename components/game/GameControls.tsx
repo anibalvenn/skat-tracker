@@ -126,7 +126,10 @@ export const GameControls: React.FC<GameControlsProps> = ({
         setGameStep('type');
       }
     } else if (gameStep === 'mitohne') {
-      setGameStep('type');
+      console.log('gamestep mit ohne')
+      // Clear the game type, which will force a transition to the 'type' step
+      setCurrentGame(prev => ({ ...prev, gameType: '' }));
+      // No need to manually set gameStep
     } else if (gameStep === 'type') {
       setCurrentGame(prev => ({ ...prev, player: null }));
       setGameStep(null);
@@ -151,22 +154,22 @@ export const GameControls: React.FC<GameControlsProps> = ({
               <>{displayPlayers[currentGame.dealer] || `Player ${currentGame.dealer + 1}`} deals. Who plays?</>
             )
           )}
-          
+
           {/* Step 2: Game Type Selection */}
           {gameStep === 'type' && (
             <>{displayPlayers[currentGame.player!] || `Player ${currentGame.player! + 1}`} plays what?</>
           )}
-          
+
           {/* Step 3: Mit/Ohne Selection (for non-Null games) */}
           {gameStep === 'mitohne' && (
             <>{displayPlayers[currentGame.player!] || `Player ${currentGame.player! + 1}`}'s {currentGame.gameType} - Mit or Ohne?</>
           )}
-          
+
           {/* Step 4: Modifiers Selection */}
           {gameStep === 'modifiers' && (
             <>Details of {displayPlayers[currentGame.player!] || `Player ${currentGame.player! + 1}`}'s {currentGame.gameType}:</>
           )}
-          
+
           {/* Step 5: Game Outcome Selection */}
           {gameStep === 'outcome' && (
             <div className="break-words flex items-center gap-2 justify-center flex-wrap">
@@ -196,7 +199,7 @@ export const GameControls: React.FC<GameControlsProps> = ({
               displayPlayers={displayPlayers}
             />
           )}
-          
+
           {/* Step 2: Game Type Selection */}
           {gameStep === 'type' && (
             <>
@@ -210,7 +213,7 @@ export const GameControls: React.FC<GameControlsProps> = ({
               </div>
             </>
           )}
-          
+
           {/* Step 3: Mit/Ohne Selection */}
           {gameStep === 'mitohne' && (
             <div className="space-y-2">
@@ -218,6 +221,7 @@ export const GameControls: React.FC<GameControlsProps> = ({
                 currentGame={currentGame}
                 setCurrentGame={setCurrentGame}
                 showWinLoss={false}
+                isEditing={false}
               />
               <div className="grid grid-cols-2 gap-2">
                 <BackButton onClick={handleBack} />
@@ -233,7 +237,7 @@ export const GameControls: React.FC<GameControlsProps> = ({
               </div>
             </div>
           )}
-          
+
           {/* Step 4: Game Modifiers */}
           {gameStep === 'modifiers' && (
             <>
@@ -255,7 +259,7 @@ export const GameControls: React.FC<GameControlsProps> = ({
               </div>
             </>
           )}
-          
+
           {/* Step 5: Game Outcome */}
           {gameStep === 'outcome' && (
             <GameOutcomeSelection

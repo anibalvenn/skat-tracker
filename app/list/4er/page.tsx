@@ -15,12 +15,7 @@ function FourPlayerListContent() {
   const listId = searchParams.get('listId');
 
 
-  console.log('List parameters:', {
-    listId,
-    players,
-    totalGames,
-    rawParams: Object.fromEntries(searchParams.entries())
-  });
+
   return (
     <FourPlayerList
       players={players}

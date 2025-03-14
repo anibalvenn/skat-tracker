@@ -40,7 +40,6 @@ export class StorageManager {
 
   static async getAllLists(): Promise<StoredList[]> {
     const { value } = await Preferences.get({ key: STORAGE_KEY });
-    console.log('Raw storage value:', value);
 
     if (!value) {
       console.log('No stored lists found');
@@ -48,7 +47,6 @@ export class StorageManager {
     }
 
     const data = JSON.parse(value);
-    console.log('Parsed storage data:', data);
 
     return data.lists.sort((a: { date: string | number | Date; }, b: { date: string | number | Date; }) =>
       new Date(b.date).getTime() - new Date(a.date).getTime()
@@ -96,7 +94,6 @@ export class StorageManager {
     };
 
     data.lists.push(newList);
-    console.log('99', newList)
     data.nextId++;
 
     await this.saveData(data);

@@ -9,12 +9,15 @@ interface MitOhneSelectionProps {
   handleGameComplete?: () => Promise<void>;
   onBack?: () => void;
   isThreePlayerMode?: boolean;
+  isEditing: Boolean
+
 }
 
 export const MitOhneSelection: React.FC<MitOhneSelectionProps> = ({
   currentGame,
   setCurrentGame,
   showWinLoss = false,
+  onBack,
 }) => {
   const handleIncrement = () => {
     setCurrentGame(prev => ({
@@ -30,6 +33,9 @@ export const MitOhneSelection: React.FC<MitOhneSelectionProps> = ({
     }));
   };
 
+  // Log when component renders to verify props
+  console.log('[MitOhneSelection] Rendering with onBack:', !!onBack);
+
   return (
     <div className="flex flex-col gap-2">
       {/* Mit/Ohne selection for non-Null games */}
@@ -39,8 +45,8 @@ export const MitOhneSelection: React.FC<MitOhneSelectionProps> = ({
             <button
               onClick={() => setCurrentGame(prev => ({ ...prev, mitOhne: 'mit' }))}
               className={`w-16 h-8 rounded text-center ${currentGame.mitOhne === 'mit'
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-100 hover:bg-gray-200 active:bg-gray-300'
+                ? 'bg-blue-500 text-white'
+                : 'bg-gray-100 hover:bg-gray-200 active:bg-gray-300'
                 }`}
             >
               Mit
@@ -49,8 +55,8 @@ export const MitOhneSelection: React.FC<MitOhneSelectionProps> = ({
             <button
               onClick={() => setCurrentGame(prev => ({ ...prev, mitOhne: 'ohne' }))}
               className={`w-16 h-8 rounded text-center ${currentGame.mitOhne === 'ohne'
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-100 hover:bg-gray-200 active:bg-gray-300'
+                ? 'bg-blue-500 text-white'
+                : 'bg-gray-100 hover:bg-gray-200 active:bg-gray-300'
                 }`}
             >
               Ohne

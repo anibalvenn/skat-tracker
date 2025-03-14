@@ -97,6 +97,7 @@ export const calculateThreePlayerSuitPoints = (game: Game): GamePoints => {
     };
   } else {
     // If game is lost, player loses double points plus loss penalty
+    console.log('defender bonus', GAME_OUTCOME.DEFENDER_BONUS)
     return {
       basePoints: -gameValue * 2,
       totalPoints: (-gameValue * 2) - GAME_OUTCOME.LOSS_PENALTY,
@@ -106,6 +107,7 @@ export const calculateThreePlayerSuitPoints = (game: Game): GamePoints => {
 };
 
 export const calculateThreePlayerPoints = (game: Game): GamePoints => {
+  console.log('calculate three')
   if (!game.gameType || game.gameType === 'eingepasst' || !game.played) {
     return { basePoints: 0, totalPoints: 0, defendersPoints: 0 };
   }

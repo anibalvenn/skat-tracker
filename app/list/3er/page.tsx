@@ -14,12 +14,7 @@ function ThreePlayerListContent() {
   const players = playersParam ? JSON.parse(decodeURIComponent(playersParam)) : [];
   const totalGames = totalGamesParam ? parseInt(totalGamesParam, 10) : 36;
   const listId = searchParams.get('listId');
-  console.log('List parameters:', {
-    listId,
-    players,
-    totalGames,
-    rawParams: Object.fromEntries(searchParams.entries())
-  });
+
 
 
   return (

@@ -23,6 +23,9 @@ export const GameOutcomeSelection: React.FC<GameOutcomeSelectionProps> = ({
   totalGames,
   playedGames
 }) => {
+  console.log('[GameOutcomeSelection] isThreePlayerMode:', isThreePlayerMode);
+  console.log('[GameOutcomeSelection] onBack function:', !!onBack);
+
   const [shouldComplete, setShouldComplete] = useState(false);
   const [isLastGame, setIsLastGame] = useState(false);
 
@@ -70,6 +73,17 @@ export const GameOutcomeSelection: React.FC<GameOutcomeSelectionProps> = ({
     }));
 
     setShouldComplete(true);
+  };
+  
+  const handleBackClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    console.log("Back button clicked in GameOutcomeSelection");
+    
+    if (onBack) {
+      onBack();
+    } else {
+      console.warn("onBack function is not defined");
+    }
   };
 
   return (
@@ -120,7 +134,7 @@ export const GameOutcomeSelection: React.FC<GameOutcomeSelectionProps> = ({
 
       {/* Back Button */}
       <button
-        onClick={onBack}
+        onClick={handleBackClick}
         className="w-full py-2 bg-black text-white rounded text-sm 
                  hover:bg-gray-800 active:bg-gray-700 
                  flex items-center justify-center gap-2"

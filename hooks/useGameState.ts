@@ -1,9 +1,10 @@
-// src/hooks/useGameState.ts with lastUpdated tracking
+// src/hooks/useGameState.ts - Consolidated hook for both 3er and 4er modes
 import { useState, useCallback, useEffect } from 'react';
 import { Game, PlayerCount, GameType } from '../types';
-import { calculatePoints } from '../utils/skatScoring';
-import { updatePlayerPoints } from '../services/skatApi';
+import { calculatePoints } from '@/utils/skatScoring';
+import { calculateThreePlayerPoints } from '@/utils/threePlayerScoring';
 import { StorageManager } from '@/utils/storage';
+import { updatePlayerPoints } from 'services/skatApi';
 
 // Add lastUpdated to the return type
 interface GameStateReturn {
@@ -29,6 +30,7 @@ interface GameStateProps {
   seriesId: string | null;
   tischId: string | null;
   listId?: number;
+  isThreePlayerMode?: boolean;
 }
 
 // Move initialGameState outside the hook
@@ -55,7 +57,8 @@ export const useGameState = ({
   totalGames,
   seriesId,
   tischId,
-  listId
+  listId,
+  isThreePlayerMode = false
 }: GameStateProps): GameStateReturn => {
   const [currentGame, setCurrentGame] = useState<Game>(initialGameState);
   const [games, setGames] = useState<Game[]>([]);
@@ -77,14 +80,17 @@ export const useGameState = ({
     statType: 'wonCount' | 'lostCount';
   } | null>(null);
 
-  // Create a memoized function to generate initial games
+  // Create a memoized function to generate initial games with correct dealer rotation
   const createInitialGames = useCallback(() => {
     return Array(totalGames).fill(null).map((_, index) => ({
       ...initialGameState,
       gameNumber: index + 1,
-      dealer: Math.floor(index / (numPlayers - 1)) % numPlayers
+      // Different dealer rotation for 3 vs 4 player modes
+      dealer: isThreePlayerMode
+        ? index % numPlayers  // Simple rotation for 3 players
+        : Math.floor(index / (numPlayers - 1)) % numPlayers // 4 player rotation
     }));
-  }, [totalGames, numPlayers]);
+  }, [totalGames, numPlayers, isThreePlayerMode]);
 
   // Create a memoized function to generate initial player counts
   const createInitialPlayerCounts = useCallback(() => {
@@ -105,12 +111,8 @@ export const useGameState = ({
           const storedList = lists.find(list => list.id === listId);
 
           if (storedList) {
-            // Create base games array
-            const initialGames = Array(totalGames).fill(null).map((_, index) => ({
-              ...initialGameState,
-              gameNumber: index + 1,
-              dealer: Math.floor(index / (numPlayers - 1)) % numPlayers
-            }));
+            // Create base games array with proper dealer rotation
+            const initialGames = createInitialGames();
 
             // Merge stored games, preserving all game data
             storedList.games.forEach(storedGame => {
@@ -140,13 +142,7 @@ export const useGameState = ({
         }
       } else {
         // Initialize fresh game state
-        const freshGames = Array(totalGames).fill(null).map((_, index) => ({
-          ...initialGameState,
-          gameNumber: index + 1,
-          dealer: Math.floor(index / (numPlayers - 1)) % numPlayers
-        }));
-
-        setGames(freshGames);
+        setGames(createInitialGames());
         setPlayerCounts(createInitialPlayerCounts());
         setCurrentGame({ ...initialGameState });
       }
@@ -154,7 +150,7 @@ export const useGameState = ({
     };
 
     loadStoredData();
-  }, [listId, createInitialGames, createInitialPlayerCounts, numPlayers, totalGames]);
+  }, [listId, createInitialGames, createInitialPlayerCounts]);
 
   // Helper function to revert points for a player
   const revertPlayerPoints = (
@@ -185,7 +181,7 @@ export const useGameState = ({
     return updatedStats;
   };
 
-
+  // Helper function to apply points for a player
   const applyPlayerPoints = (
     game: Game,
     points: { basePoints: number; totalPoints: number; defendersPoints?: number },
@@ -212,6 +208,13 @@ export const useGameState = ({
       // Add defender points to other players
       for (let i = 0; i < numPlayers; i++) {
         if (i !== game.player) {
+
+          console.log('Adding defender points to player', {
+            playerId: i,
+            defendersPoints: points.defendersPoints,
+            currentTotal: updatedStats[i].totalPoints,
+            newTotal: updatedStats[i].totalPoints + (points.defendersPoints || 0)
+          });
           updatedStats[i].totalPoints += points.defendersPoints || 0;
         }
       }
@@ -240,7 +243,6 @@ export const useGameState = ({
       schwarzAnnounced: false
     }));
   }, []);
-
 
   const cancelEditing = useCallback(() => {
     if (editingGameBackup) {
@@ -277,7 +279,7 @@ export const useGameState = ({
     }));
 
     setGames(updatedGames);
-    setCurrentGame({ ...gameToEdit, isEditing: true });
+    setCurrentGame({ ...gameToEdit, isEditing: true, played:false });
   }, [games, currentGame, playerCounts, lastUpdated]);
 
   const handleGameComplete = useCallback(async (): Promise<void> => {
@@ -291,7 +293,11 @@ export const useGameState = ({
     if (currentGame.isEditing && editingGameBackup) {
       const originalGame = editingGameBackup.game;
       if (originalGame.player !== null && originalGame.gameType !== 'eingepasst') {
-        const originalPoints = calculatePoints(originalGame);
+        // Use the correct point calculation function based on mode
+        const originalPoints = isThreePlayerMode
+          ? calculateThreePlayerPoints(originalGame)
+          : calculatePoints(originalGame);
+
         newPlayerCounts = revertPlayerPoints(originalGame, originalPoints, newPlayerCounts);
       }
     }
@@ -302,7 +308,18 @@ export const useGameState = ({
     }
     // Apply the new/updated game points for non-eingepasst games
     else if (currentGame.player !== null) {
-      const points = calculatePoints(currentGame);
+      // Use the correct point calculation function based on mode
+      const points = isThreePlayerMode
+        ? calculateThreePlayerPoints(currentGame)
+        : calculatePoints(currentGame);
+
+      console.log('Calculated points:', {
+        isThreePlayerMode,
+        basePoints: points.basePoints,
+        totalPoints: points.totalPoints,
+        defendersPoints: points.defendersPoints
+      });
+
       newPlayerCounts = applyPlayerPoints(currentGame, points, newPlayerCounts);
 
       // Update API if seriesId exists
@@ -338,7 +355,6 @@ export const useGameState = ({
         }
       }
 
-      // Update storage if listId exists
       // Update storage if listId exists
       if (listId) {
         try {
@@ -382,17 +398,21 @@ export const useGameState = ({
       // Move to next game
       const nextGameNumber = currentGame.gameNumber + 1;
       if (nextGameNumber <= totalGames) {
+        // Get the dealer for the next game based on mode
+        const nextDealer = (currentGame.dealer + 1) % numPlayers // Simple rotation
+
+
         setCurrentGame({
           ...initialGameState,
           gameNumber: nextGameNumber,
-          dealer: (currentGame.dealer + 1) % numPlayers
+          dealer: nextDealer
         });
       }
     }
 
     setGames(newGames);
     setPlayerCounts(newPlayerCounts);
-  }, [currentGame, games, playerCounts, editingGameBackup, numPlayers, totalGames, seriesId, tischId, initialGameState, listId]);
+  }, [currentGame, games, playerCounts, editingGameBackup, numPlayers, totalGames, seriesId, tischId, listId, isThreePlayerMode]);
 
   return {
     currentGame,
