@@ -36,7 +36,6 @@ export const GameControls: React.FC<GameControlsProps> = ({
   handleGameComplete,
   handleGameTypeSelect,
   displayPlayers,
-  onCancelEdit,
   isEditing,
   isThreePlayerMode
 }) => {

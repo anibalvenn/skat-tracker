@@ -279,9 +279,13 @@ export const useGameState = ({
     }));
 
     setGames(updatedGames);
-    setCurrentGame({ ...gameToEdit, isEditing: true, played:false });
+    setCurrentGame({
+      ...gameToEdit, isEditing: true, played: false,
+      gameType: ['eingepasst', 'N'].includes(gameToEdit.gameType) ? '' : gameToEdit.gameType
+    });
   }, [games, currentGame, playerCounts, lastUpdated]);
 
+  // Modify this section in useGameState.ts around line 300
   const handleGameComplete = useCallback(async (): Promise<void> => {
     if (!currentGame.played && currentGame.gameType !== 'eingepasst') return;
 
@@ -306,8 +310,9 @@ export const useGameState = ({
     if (currentGame.gameType === 'eingepasst') {
       setLastUpdated(null);
     }
-    // Apply the new/updated game points for non-eingepasst games
-    else if (currentGame.player !== null) {
+
+    // Apply the new/updated game points for non-eingepasst games with a player
+    if (currentGame.player !== null && currentGame.gameType !== 'eingepasst') {
       // Use the correct point calculation function based on mode
       const points = isThreePlayerMode
         ? calculateThreePlayerPoints(currentGame)
@@ -354,29 +359,30 @@ export const useGameState = ({
           console.error('Error updating player points:', error);
         }
       }
+    }
 
-      // Update storage if listId exists
-      if (listId) {
-        try {
-          const gameToStore = {
-            ...currentGame,
-            played: true,
-            isEditing: false
-          };
+    // Update storage for ALL game types (including eingepasst)
+    if (listId) {
+      try {
+        const gameToStore = {
+          ...currentGame,
+          played: true,
+          isEditing: false
+        };
 
-          // Check if this is the last game in the list
-          const isLastGame = games.filter(g => g.played).length === totalGames - 1;
+        // Check if this is the last game in the list
+        const playedGamesCount = games.filter(g => g.played).length + (currentGame.isEditing ? 0 : 1);
+        const isLastGame = playedGamesCount === totalGames;
 
-          // Update the game in the list
-          await StorageManager.updateGameInList(
-            listId,
-            gameToStore,
-            newPlayerCounts,
-            isLastGame ? 'completed' : 'in_progress'
-          );
-        } catch (error) {
-          console.error('Error updating stored list:', error);
-        }
+        // Update the game in the list
+        await StorageManager.updateGameInList(
+          listId,
+          gameToStore,
+          newPlayerCounts,
+          isLastGame ? 'completed' : 'in_progress'
+        );
+      } catch (error) {
+        console.error('Error updating stored list:', error);
       }
     }
 
@@ -401,7 +407,6 @@ export const useGameState = ({
         // Get the dealer for the next game based on mode
         const nextDealer = (currentGame.dealer + 1) % numPlayers // Simple rotation
 
-
         setCurrentGame({
           ...initialGameState,
           gameNumber: nextGameNumber,
@@ -413,7 +418,6 @@ export const useGameState = ({
     setGames(newGames);
     setPlayerCounts(newPlayerCounts);
   }, [currentGame, games, playerCounts, editingGameBackup, numPlayers, totalGames, seriesId, tischId, listId, isThreePlayerMode]);
-
   return {
     currentGame,
     setCurrentGame,

@@ -9,14 +9,13 @@ interface MitOhneSelectionProps {
   handleGameComplete?: () => Promise<void>;
   onBack?: () => void;
   isThreePlayerMode?: boolean;
-  isEditing: Boolean
+  isEditing: boolean
 
 }
 
 export const MitOhneSelection: React.FC<MitOhneSelectionProps> = ({
   currentGame,
   setCurrentGame,
-  showWinLoss = false,
   onBack,
 }) => {
   const handleIncrement = () => {

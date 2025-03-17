@@ -62,7 +62,7 @@ export const CompletionFooter: React.FC<CompletionFooterProps> = ({
           <Trophy className="w-12 h-12 mx-auto text-yellow-500" />
           <h2 className="text-xl font-bold">List Completed!</h2>
           <p className="text-gray-600">
-            Congratulations! You've finished list #{listId}.
+            Congratulations! You have finished list #{listId}.
           </p>
           <p className="text-sm text-gray-500">
             {playedGames}/{totalGames} games completed
