@@ -10,6 +10,10 @@ const config: CapacitorConfig = {
   plugins: {
     SplashScreen: {
       launchShowDuration: 0
+    },
+    App: {
+      // This allows us to handle the back button event
+      backButtonBehavior: 'none'
     }
   }
 };

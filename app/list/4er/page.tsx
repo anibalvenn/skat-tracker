@@ -29,9 +29,9 @@ function FourPlayerListContent() {
 
 export default function FourPlayerListPage() {
   return (
-    <main className="min-h-screen p-1">
+    <main className="min-h-[100dvh] p-1">
       <Suspense fallback={
-        <div className="flex items-center justify-center min-h-screen">
+        <div className="flex items-center justify-center min-h-[100dvh]">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
         </div>
       }>

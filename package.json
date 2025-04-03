@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@capacitor/android": "^5.5.1",
+    "@capacitor/app": "^5.0.8",
     "@capacitor/cli": "^7.0.1",
     "@capacitor/core": "^5.5.0",
     "@capacitor/preferences": "^5.0.0",

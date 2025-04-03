@@ -64,14 +64,14 @@ export default function YourListsPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-[100dvh]">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
       </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-[100dvh] bg-gray-50">
       {/* Header */}
       <header className="bg-white shadow-sm p-4">
         <div className="max-w-4xl mx-auto flex items-center justify-between">

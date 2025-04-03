@@ -19,7 +19,7 @@ export default function HomePage() {
   };
 
   return (
-    <main className="min-h-screen flex flex-col bg-gray-50">
+    <main className="min-h-[100dvh] flex flex-col bg-gray-50">
       {/* Header */}
       <header className="bg-white shadow-sm p-4">
         <h1 className="text-2xl font-bold text-center">Skat Tracker</h1>

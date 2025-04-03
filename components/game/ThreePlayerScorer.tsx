@@ -40,7 +40,7 @@ const ThreePlayerScorer: React.FC<ThreePlayerScorerProps> = ({
   });
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
+    <div className="flex flex-col h-[100dvh] bg-gray-50">
       {/* Fixed Header Section */}
       <div className="flex-none bg-white border-b">
         <GameHeader seriesId={seriesId} tischId={tischId} listId={0} totalGames={totalGames} playedGames={games.filter(g => g.played).length} date={new Date().toISOString()} />

@@ -69,7 +69,7 @@ const FourPlayerList: React.FC<FourPlayerListProps> = ({
   }, [playedGames, listId]); // Re-run when playedGames or listId changes
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
+    <div className="flex flex-col h-[100dvh] bg-gray-50">
       {/* Fixed Header Section */}
       <div className="flex-none bg-white border-b">
         <GameHeader
