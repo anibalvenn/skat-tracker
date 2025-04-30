@@ -12,6 +12,8 @@ export interface StoredList {
   status: 'in_progress' | 'completed' | 'abandoned';
   games: Game[];
   playerCounts: PlayerCount[];
+  startTime: string;      // Timestamp when the list was started
+  endTime?: string;       // Timestamp when the list was completed
 }
 
 interface StorageData {
@@ -76,6 +78,7 @@ export class StorageManager {
       data.lists.shift();
     }
 
+    // Create a new list with a startTime
     const newList: StoredList = {
       id: data.nextId,
       date: new Date().toISOString(),
@@ -90,7 +93,8 @@ export class StorageManager {
         lostCount: 0,
         basePoints: 0,
         totalPoints: 0
-      }))
+      })),
+      startTime: new Date().toISOString(), // Add start time when list is created
     };
 
     data.lists.push(newList);
@@ -132,7 +136,6 @@ export class StorageManager {
     status?: 'in_progress' | 'completed' | 'abandoned'
   ): Promise<void> {
     try {
-      console.log('137', game)
       const data = await this.getData();
       const listIndex = data.lists.findIndex(list => list.id === listId);
 
@@ -174,12 +177,17 @@ export class StorageManager {
       list.playerCounts = playerCounts;
       list.playedGames = list.games.filter(g => g.played).length;
 
-      // Update list status
-      list.status = list.playedGames === list.totalGames ? 'completed' : 'in_progress';
+      // Update list status and add endTime if completed
+      const newStatus = list.playedGames === list.totalGames ? 'completed' : 'in_progress';
+      list.status = newStatus;
+      
+      // If the list is being completed, add an endTime
+      if (newStatus === 'completed' && !list.endTime) {
+        list.endTime = new Date().toISOString();
+      }
 
       data.lists[listIndex] = list;
       await this.saveData(data);
-      console.log(list)
     } catch (error) {
       console.error('Error updating game in list:', error);
       throw error;

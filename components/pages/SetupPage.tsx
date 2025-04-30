@@ -102,7 +102,15 @@ export default function SetupPage() {
       // Get the newly created list which includes its ID
       const newList = await StorageManager.createList(finalPlayers, mode, totalGames);
 
-      // Navigate to list page WITH the listId
+      // Calculate and log all dealers for this list
+      const numPlayers = mode === '3er' ? 3 : 4;
+      const dealerMap = Array(totalGames).fill(null).map((_, index) => {
+        const gameNumber = index + 1;
+        const dealer = index % numPlayers  
+        return { gameNumber, dealer: dealer + 1 }; // +1 to show dealer as Player 1, 2, 3, 4 instead of 0, 1, 2, 3
+      });
+
+      // Continue with navigation
       router.push(
         `/list/${mode}?players=${encodeURIComponent(JSON.stringify(finalPlayers))}` +
         `&totalGames=${totalGames}&listId=${newList.id}`
@@ -114,7 +122,7 @@ export default function SetupPage() {
   };
 
   return (
-    <main className="min-h-[100dvh] flex flex-col bg-gray-50">
+    <main className="min-h-[calc(100dvh-50px)] flex flex-col bg-gray-50">
       {/* Header */}
       <header className="bg-white shadow-sm p-4">
         <h1 className="text-2xl font-bold text-center">Player Setup</h1>
@@ -182,10 +190,10 @@ export default function SetupPage() {
                   onChange={(e) => handleInputChange(index, e.target.value)}
                   placeholder={`Player ${index + 1}`}
                   className={`w-full p-3 rounded-lg border ${errors[index]
-                      ? 'border-red-500 bg-red-50'
-                      : player && validateInput(player)
-                        ? 'border-green-500 bg-green-50'
-                        : 'border-gray-300'
+                    ? 'border-red-500 bg-red-50'
+                    : player && validateInput(player)
+                      ? 'border-green-500 bg-green-50'
+                      : 'border-gray-300'
                     } focus:outline-none focus:ring-2 focus:ring-blue-500`}
                 />
                 {errors[index] && (

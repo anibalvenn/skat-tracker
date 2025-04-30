@@ -172,7 +172,7 @@ export const SkatListDisplay: React.FC<SkatListProps> = ({
   });
 
   return (
-    <div className="flex flex-col h-[100dvh]">
+    <div className="flex flex-col h-[calc(100dvh-50px)]">
       <div className="flex-grow overflow-auto p-4">
         <Card className="p-4">
           <GameHeader seriesId={seriesId} tischId={tischId} />

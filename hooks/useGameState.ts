@@ -86,9 +86,7 @@ export const useGameState = ({
       ...initialGameState,
       gameNumber: index + 1,
       // Different dealer rotation for 3 vs 4 player modes
-      dealer: isThreePlayerMode
-        ? index % numPlayers  // Simple rotation for 3 players
-        : Math.floor(index / (numPlayers - 1)) % numPlayers // 4 player rotation
+      dealer: index % numPlayers  // Simple rotation for 3 players
     }));
   }, [totalGames, numPlayers, isThreePlayerMode]);
 
@@ -404,13 +402,11 @@ export const useGameState = ({
       // Move to next game
       const nextGameNumber = currentGame.gameNumber + 1;
       if (nextGameNumber <= totalGames) {
-        // Get the dealer for the next game based on mode
-        const nextDealer = (currentGame.dealer + 1) % numPlayers // Simple rotation
 
         setCurrentGame({
           ...initialGameState,
           gameNumber: nextGameNumber,
-          dealer: nextDealer
+          dealer: newGames[nextGameNumber - 1].dealer // Use the pre-assigned dealer
         });
       }
     }

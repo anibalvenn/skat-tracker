@@ -3,25 +3,86 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { StorageManager, StoredList } from '@/utils/storage';
-import { Triangle, Square, Trash2, Edit, AlertCircle, ArrowLeft, CheckCircle } from 'lucide-react';
+import { Triangle, Square, Trash2, Edit, AlertCircle, ArrowLeft, CheckCircle, Clock } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '../ui/alert-dialog';
 
+// Helper function to format time duration
+const formatDuration = (startTime: string, endTime?: string): string => {
+  const start = new Date(startTime).getTime();
+  const end = endTime ? new Date(endTime).getTime() : Date.now();
+  const duration = end - start;
+  
+  // If over 3h30m, show special message
+  if (duration > 3.5 * 60 * 60 * 1000) {
+    return 'over 3h30';
+  }
+  
+  // Format as HH:MM:SS
+  const totalSeconds = Math.floor(duration / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  
+  return [
+    hours.toString().padStart(2, '0'),
+    minutes.toString().padStart(2, '0'),
+    seconds.toString().padStart(2, '0')
+  ].join(':');
+};
 
 export default function YourListsPage() {
   const router = useRouter();
   const [lists, setLists] = useState<StoredList[]>([]);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [timeElapsed, setTimeElapsed] = useState<Record<number, string>>({});
 
   // Load lists on mount
   useEffect(() => {
     loadLists();
   }, []);
 
+  // Update timer for in-progress lists
+  useEffect(() => {
+    const inProgressLists = lists.filter(list => list.status === 'in_progress');
+    if (inProgressLists.length === 0) return;
+
+    // Initialize timers
+    const timers: Record<number, string> = {};
+    inProgressLists.forEach(list => {
+      if (list.startTime) {
+        timers[list.id] = formatDuration(list.startTime);
+      }
+    });
+    setTimeElapsed(timers);
+
+    // Set up interval to update timers
+    const intervalId = setInterval(() => {
+      const updatedTimers: Record<number, string> = {};
+      inProgressLists.forEach(list => {
+        if (list.startTime) {
+          updatedTimers[list.id] = formatDuration(list.startTime);
+        }
+      });
+      setTimeElapsed(updatedTimers);
+    }, 1000);
+
+    return () => clearInterval(intervalId);
+  }, [lists]);
+
   const loadLists = async () => {
     try {
       const storedLists = await StorageManager.getAllLists();
       setLists(storedLists);
+      
+      // Initialize time elapsed for completed lists
+      const completedTimers: Record<number, string> = {};
+      storedLists.forEach(list => {
+        if (list.status === 'completed' && list.startTime && list.endTime) {
+          completedTimers[list.id] = formatDuration(list.startTime, list.endTime);
+        }
+      });
+      setTimeElapsed(prev => ({ ...prev, ...completedTimers }));
     } catch (error) {
       console.error('Error loading lists:', error);
     } finally {
@@ -105,12 +166,12 @@ export default function YourListsPage() {
                 ${list.status === 'in_progress' ? 'ring-2 ring-green-500' : 
                   list.status === 'completed' ? 'ring-2 ring-blue-500 bg-blue-50' : ''}`}
             >
-              <div className="flex justify-between items-start">
+              <div className="flex justify-between items-start min-w-0">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     {/* List ID with custom styling */}
                     <div className="flex-shrink-0 w-16 h-6 rounded-lg bg-gray-900 text-white 
-                  flex flex-col items-center justify-center leading-tight">
+                                   flex flex-col items-center justify-center leading-tight">
                       <span className="text-lg font-bold">#{list.id}</span>
                     </div>
 
@@ -132,7 +193,7 @@ export default function YourListsPage() {
                   <div className="font-medium">
                     {list.players.join(' • ')}
                   </div>
-                  <div className="flex items-center gap-4 text-sm text-gray-600">
+                  <div className="flex items-center flex-wrap gap-2 text-sm text-gray-600">
                     <span className={`px-2 py-0.5 rounded-full text-xs 
                       ${list.status === 'in_progress'
                         ? 'bg-green-100 text-green-800'
@@ -158,10 +219,24 @@ export default function YourListsPage() {
                         </span>
                       )}
                     </div>
+                    
+                    {/* Duration information */}
+                    {list.startTime && (
+                      <div className={`flex items-center gap-1 px-2 py-0.5 rounded-md ${
+                        list.status === 'completed' ? 'bg-blue-100' : 'bg-gray-100'
+                      }`}>
+                        <Clock className="w-4 h-4" />
+                        <span className={`font-mono font-medium text-sm ${
+                          list.status === 'completed' ? 'text-blue-700' : 'text-gray-800'
+                        }`}>
+                          {timeElapsed[list.id] || formatDuration(list.startTime, list.endTime)}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-shrink-0 ml-2">
                   <button
                     onClick={() => handleOpen(list)}
                     className={`p-2 rounded-full ${

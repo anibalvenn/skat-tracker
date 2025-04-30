@@ -10,7 +10,6 @@ interface MitOhneSelectionProps {
   onBack?: () => void;
   isThreePlayerMode?: boolean;
   isEditing: boolean
-
 }
 
 export const MitOhneSelection: React.FC<MitOhneSelectionProps> = ({
@@ -21,7 +20,7 @@ export const MitOhneSelection: React.FC<MitOhneSelectionProps> = ({
   const handleIncrement = () => {
     setCurrentGame(prev => ({
       ...prev,
-      multiplier: (prev.multiplier || 1) + 1
+      multiplier: Math.min((prev.multiplier || 1) + 1, 11) // Limit to maximum of 11
     }));
   };
 
@@ -31,6 +30,11 @@ export const MitOhneSelection: React.FC<MitOhneSelectionProps> = ({
       multiplier: Math.max((prev.multiplier || 1) - 1, 1)
     }));
   };
+
+  // Check if we've reached the maximum multiplier
+  const isMaxMultiplier = currentGame.multiplier >= 11;
+  // Check if we've reached the minimum multiplier
+  const isMinMultiplier = currentGame.multiplier <= 1;
 
   // Log when component renders to verify props
   console.log('[MitOhneSelection] Rendering with onBack:', !!onBack);
@@ -66,7 +70,12 @@ export const MitOhneSelection: React.FC<MitOhneSelectionProps> = ({
           <div className="flex items-center gap-1">
             <button
               onClick={handleDecrement}
-              className="p-1 rounded bg-gray-100 hover:bg-gray-200 active:bg-gray-300"
+              disabled={isMinMultiplier}
+              className={`p-1 rounded ${
+                isMinMultiplier 
+                  ? 'bg-gray-50 text-gray-300 cursor-not-allowed' 
+                  : 'bg-gray-100 hover:bg-gray-200 active:bg-gray-300'
+              }`}
             >
               <Minus className="w-4 h-4" />
             </button>
@@ -77,7 +86,12 @@ export const MitOhneSelection: React.FC<MitOhneSelectionProps> = ({
 
             <button
               onClick={handleIncrement}
-              className="p-1 rounded bg-gray-100 hover:bg-gray-200 active:bg-gray-300"
+              disabled={isMaxMultiplier}
+              className={`p-1 rounded ${
+                isMaxMultiplier 
+                  ? 'bg-gray-50 text-gray-300 cursor-not-allowed' 
+                  : 'bg-gray-100 hover:bg-gray-200 active:bg-gray-300'
+              }`}
             >
               <Plus className="w-4 h-4" />
             </button>
