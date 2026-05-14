@@ -3,7 +3,7 @@
 import { Triangle, Square, ArrowLeft, ArrowRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { StorageManager } from '@/utils/storage';
+import { StorageManager, getManagerConfig } from '@/utils/storage';
 
 const LIST_FRACTIONS = [
   { label: 'Full List', value: 1 },
@@ -17,6 +17,21 @@ const LIST_FRACTIONS = [
 export default function SetupPage() {
   const router = useRouter();
   const [mode, setMode] = useState<'3er' | '4er'>('3er');
+  const [managerSeriesId, setManagerSeriesId] = useState<number | null>(null);
+  const [managerTischId, setManagerTischId] = useState<number | null>(null);
+
+  // Pre-fill player names from ManagerConfig if available
+  useEffect(() => {
+    getManagerConfig().then(cfg => {
+      if (!cfg || cfg.players.length === 0) return;
+      setManagerSeriesId(cfg.seriesId);
+      setManagerTischId(cfg.tischId);
+      const names = cfg.players.map(p => p.name);
+      setPlayers(names);
+      setMode(names.length >= 4 ? '4er' : '3er');
+    });
+  }, []);
+
   const [players, setPlayers] = useState<string[]>(() => {
     // Check for players passed in URL query params
     if (typeof window !== 'undefined') {
@@ -102,19 +117,13 @@ export default function SetupPage() {
       // Get the newly created list which includes its ID
       const newList = await StorageManager.createList(finalPlayers, mode, totalGames);
 
-      // Calculate and log all dealers for this list
-      const numPlayers = mode === '3er' ? 3 : 4;
-      const dealerMap = Array(totalGames).fill(null).map((_, index) => {
-        const gameNumber = index + 1;
-        const dealer = index % numPlayers  
-        return { gameNumber, dealer: dealer + 1 }; // +1 to show dealer as Player 1, 2, 3, 4 instead of 0, 1, 2, 3
-      });
-
       // Continue with navigation
-      router.push(
+      let path =
         `/list/${mode}?players=${encodeURIComponent(JSON.stringify(finalPlayers))}` +
-        `&totalGames=${totalGames}&listId=${newList.id}`
-      );
+        `&totalGames=${totalGames}&listId=${newList.id}`;
+      if (managerSeriesId !== null) path += `&seriesId=${managerSeriesId}`;
+      if (managerTischId !== null) path += `&tischId=${managerTischId}`;
+      router.push(path);
     } catch (error) {
       console.error('Error creating list:', error);
       alert('Failed to create list. Please try again.');

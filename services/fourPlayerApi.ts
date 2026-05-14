@@ -1,5 +1,6 @@
 // src/services/fourPlayerApi.ts
 import { Game, ApiResponse } from "../types";
+import { getApiBase } from "./managerApi";
 
 interface UpdateFourPlayerPointsParams {
   playerId: number;
@@ -47,9 +48,12 @@ export const updateFourPlayerPoints = async ({
       throw new FourPlayerApiError('Invalid game data: Dealer cannot play in 4-player mode');
     }
 
-    const response = await fetch('/api/update_four_player_points', {
+    const { baseUrl, apiKey } = await getApiBase();
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (apiKey) headers['X-API-Key'] = apiKey;
+    const response = await fetch(`${baseUrl}/api/update_four_player_points`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({
         playerId,
         seriesId,

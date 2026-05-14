@@ -14,8 +14,8 @@ function ThreePlayerListContent() {
   const players = playersParam ? JSON.parse(decodeURIComponent(playersParam)) : [];
   const totalGames = totalGamesParam ? parseInt(totalGamesParam, 10) : 36;
   const listId = searchParams.get('listId');
-
-
+  const seriesId = searchParams.get('seriesId');
+  const tischId = searchParams.get('tischId');
 
   return (
     <ProtectedList mode="3er">
@@ -24,7 +24,8 @@ function ThreePlayerListContent() {
         numPlayers={3}
         totalGames={totalGames}
         listId={listId ? parseInt(listId, 10) : undefined}
-
+        seriesId={seriesId}
+        tischId={tischId}
       />
     </ProtectedList>
   );

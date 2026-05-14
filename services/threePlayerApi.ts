@@ -1,4 +1,5 @@
 import { Game, ApiResponse } from "../types";
+import { getApiBase } from "./managerApi";
 
 
 interface UpdateThreePlayerPointsParams {
@@ -42,9 +43,12 @@ export const updateThreePlayerPoints = async ({
       throw new ThreePlayerApiError('Invalid game data: No game type specified');
     }
 
-    const response = await fetch('/api/update_three_player_points', {
+    const { baseUrl, apiKey } = await getApiBase();
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (apiKey) headers['X-API-Key'] = apiKey;
+    const response = await fetch(`${baseUrl}/api/update_three_player_points`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({
         playerId,
         seriesId,

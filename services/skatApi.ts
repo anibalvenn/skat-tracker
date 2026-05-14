@@ -1,14 +1,16 @@
 // src/services/skatApi.ts
 
 import { ApiResponse } from "types";
+import { getApiBase } from "./managerApi";
 
 interface UpdatePointsParams {
-  playerId: number;
+  playerId: number;       // real PlayerID (already mapped from index before calling)
   seriesId: string;
   tischId?: string;
   totalPoints: number;
   wonGames: number;
   lostGames: number;
+  mode?: 'three' | 'four'; // selects the correct manager endpoint
 }
 
 export const updatePlayerPoints = async ({
@@ -17,25 +19,35 @@ export const updatePlayerPoints = async ({
   tischId,
   totalPoints,
   wonGames,
-  lostGames
+  lostGames,
+  mode = 'three',
 }: UpdatePointsParams): Promise<ApiResponse> => {
   try {
-    const response = await fetch('/update_player_points', {
+    const { baseUrl, apiKey } = await getApiBase();
+    const endpoint = mode === 'four'
+      ? '/api/update_four_player_points'
+      : '/api/update_three_player_points';
+
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (apiKey) headers['X-API-Key'] = apiKey;
+
+    const response = await fetch(`${baseUrl}${endpoint}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({
         playerId,
         seriesId,
+        tischId,
         total_points: totalPoints,
         won_games: wonGames,
-        lost_games: lostGames
+        lost_games: lostGames,
       })
     });
-    
+
     if (!response.ok) {
       throw new Error('Failed to update points');
     }
-    
+
     return await response.json();
   } catch (err) {
     console.error('API Error:', err);

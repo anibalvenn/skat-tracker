@@ -3,7 +3,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { Game, PlayerCount, GameType } from '../types';
 import { calculatePoints } from '@/utils/skatScoring';
 import { calculateThreePlayerPoints } from '@/utils/threePlayerScoring';
-import { StorageManager } from '@/utils/storage';
+import { StorageManager, getManagerConfig, ManagerConfig } from '@/utils/storage';
 import { updatePlayerPoints } from 'services/skatApi';
 
 // Add lastUpdated to the return type
@@ -73,6 +73,12 @@ export const useGameState = ({
     } | null;
   } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [managerConfig, setManagerConfig] = useState<ManagerConfig | null>(null);
+
+  // Load ManagerConfig once on mount for index→PlayerID mapping
+  useEffect(() => {
+    getManagerConfig().then(cfg => setManagerConfig(cfg));
+  }, []);
 
   // Add state for tracking last updated player and stat
   const [lastUpdated, setLastUpdated] = useState<{
@@ -328,14 +334,20 @@ export const useGameState = ({
       // Update API if seriesId exists
       if (seriesId) {
         try {
+          const apiMode = isThreePlayerMode ? 'three' : 'four';
+          // Map player index to real PlayerID using ManagerConfig, fall back to index
+          const toPlayerId = (idx: number) =>
+            managerConfig?.players[idx]?.id ?? idx;
+
           // Update current player's points
           await updatePlayerPoints({
-            playerId: currentGame.player,
+            playerId: toPlayerId(currentGame.player),
             seriesId,
             tischId: tischId || undefined,
             totalPoints: newPlayerCounts[currentGame.player].totalPoints,
             wonGames: newPlayerCounts[currentGame.player].wonCount,
-            lostGames: newPlayerCounts[currentGame.player].lostCount
+            lostGames: newPlayerCounts[currentGame.player].lostCount,
+            mode: apiMode,
           });
 
           // Update other players' points if game was lost
@@ -343,12 +355,13 @@ export const useGameState = ({
             for (let i = 0; i < numPlayers; i++) {
               if (i !== currentGame.player) {
                 await updatePlayerPoints({
-                  playerId: i,
+                  playerId: toPlayerId(i),
                   seriesId,
                   tischId: tischId || undefined,
                   totalPoints: newPlayerCounts[i].totalPoints,
                   wonGames: newPlayerCounts[i].wonCount,
-                  lostGames: newPlayerCounts[i].lostCount
+                  lostGames: newPlayerCounts[i].lostCount,
+                  mode: apiMode,
                 });
               }
             }

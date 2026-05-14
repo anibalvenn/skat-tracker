@@ -13,8 +13,8 @@ function FourPlayerListContent() {
   const players = playersParam ? JSON.parse(decodeURIComponent(playersParam)) : [];
   const totalGames = totalGamesParam ? parseInt(totalGamesParam, 10) : 48;
   const listId = searchParams.get('listId');
-
-
+  const seriesId = searchParams.get('seriesId');
+  const tischId = searchParams.get('tischId');
 
   return (
     <FourPlayerList
@@ -22,7 +22,8 @@ function FourPlayerListContent() {
       numPlayers={4}
       totalGames={totalGames}
       listId={listId ? parseInt(listId, 10) : undefined}
-
+      seriesId={seriesId}
+      tischId={tischId}
     />
   );
 }

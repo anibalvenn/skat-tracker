@@ -2,6 +2,34 @@
 import { Preferences } from '@capacitor/preferences';
 import { Game, PlayerCount } from '../types';
 
+export interface ManagerConfig {
+  url: string;                              // e.g. "http://192.168.1.10:5000"
+  apiKey: string;                           // empty string if no auth
+  championshipId: number | null;
+  championshipName: string;
+  seriesId: number | null;
+  seriesName: string;
+  tischId: number | null;
+  tischName: string;
+  players: { id: number; name: string }[];  // seat order from manager
+}
+
+const MANAGER_CONFIG_KEY = 'skat_manager_config';
+
+export async function getManagerConfig(): Promise<ManagerConfig | null> {
+  const { value } = await Preferences.get({ key: MANAGER_CONFIG_KEY });
+  if (!value) return null;
+  return JSON.parse(value) as ManagerConfig;
+}
+
+export async function saveManagerConfig(config: ManagerConfig): Promise<void> {
+  await Preferences.set({ key: MANAGER_CONFIG_KEY, value: JSON.stringify(config) });
+}
+
+export async function clearManagerConfig(): Promise<void> {
+  await Preferences.remove({ key: MANAGER_CONFIG_KEY });
+}
+
 export interface StoredList {
   id: number;
   date: string;
