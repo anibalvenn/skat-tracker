@@ -8,6 +8,7 @@ interface UpdatePointsParams {
   seriesId: string;
   tischId?: string;
   totalPoints: number;
+  basePoints?: number;    // sent as table_points (Tisch Points column in manager)
   wonGames: number;
   lostGames: number;
   mode?: 'three' | 'four'; // selects the correct manager endpoint
@@ -18,6 +19,7 @@ export const updatePlayerPoints = async ({
   seriesId,
   tischId,
   totalPoints,
+  basePoints,
   wonGames,
   lostGames,
   mode = 'three',
@@ -39,6 +41,7 @@ export const updatePlayerPoints = async ({
         seriesId,
         tischId,
         total_points: totalPoints,
+        table_points: basePoints,
         won_games: wonGames,
         lost_games: lostGames,
       })
