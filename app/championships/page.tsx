@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Plug, Trash2, Play, RefreshCw, PenLine } from 'lucide-react';
+import { ArrowLeft, Plug, Trash2, Play, RefreshCw, PenLine, QrCode } from 'lucide-react';
 import {
   getManagerConfig, saveManagerConfig, clearManagerConfig, ManagerConfig, StorageManager,
 } from '@/utils/storage';
@@ -59,6 +59,7 @@ export default function ChampionshipsPage() {
   const [champRanking, setChampRanking] = useState<ChampionshipRankingItem[]>([]);
   const [allSeries, setAllSeries] = useState<SeriesItem[]>([]);
   const [tablesSeriesId, setTablesSeriesId] = useState<number | null>(null);
+  const [scanning, setScanning] = useState(false);
 
   // ── on mount: restore state from storage ────────────────────────────────────
   useEffect(() => {
@@ -100,6 +101,27 @@ export default function ChampionshipsPage() {
       setConnectError(e instanceof Error ? e.message : 'Connection failed');
     } finally {
       setConnecting(false);
+    }
+  };
+
+  const startScan = async () => {
+    setScanning(true);
+    const { Html5Qrcode } = await import('html5-qrcode');
+    const scanner = new Html5Qrcode('qr-reader');
+    try {
+      await scanner.start(
+        { facingMode: 'environment' },
+        { fps: 10, qrbox: 250 },
+        (decodedText: string) => {
+          scanner.stop().then(() => {
+            setUrl(decodedText.replace(/\/$/, ''));
+            setScanning(false);
+          });
+        },
+        () => {}
+      );
+    } catch {
+      setScanning(false);
     }
   };
 
@@ -261,13 +283,23 @@ export default function ChampionshipsPage() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Manager URL</label>
-            <input
-              type="url"
-              value={url}
-              onChange={e => setUrl(e.target.value)}
-              placeholder="http://192.168.1.10:5000"
-              className="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            <div className="relative">
+              <input
+                type="url"
+                value={url}
+                onChange={e => setUrl(e.target.value)}
+                placeholder="http://192.168.1.10:5000"
+                className="w-full p-3 pr-10 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <button
+                type="button"
+                onClick={startScan}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-500"
+                title="Scan QR code"
+              >
+                <QrCode className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
           <div>
@@ -582,6 +614,17 @@ export default function ChampionshipsPage() {
               </div>
             )}
           </div>
+        </div>
+      )}
+      {scanning && (
+        <div className="fixed inset-0 z-50 bg-black flex flex-col items-center justify-center">
+          <div id="qr-reader" className="w-72 h-72" />
+          <button
+            onClick={() => setScanning(false)}
+            className="mt-6 px-6 py-2 bg-white text-black rounded-lg text-sm"
+          >
+            Cancel
+          </button>
         </div>
       )}
     </main>
