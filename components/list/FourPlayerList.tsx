@@ -14,6 +14,7 @@ interface FourPlayerListProps {
   seriesId?: string | null;
   tischId?: string | null;
   listId?: number;
+  backTo?: string;
 }
 
 const FourPlayerList: React.FC<FourPlayerListProps> = ({
@@ -22,7 +23,8 @@ const FourPlayerList: React.FC<FourPlayerListProps> = ({
   totalGames,
   seriesId = null,
   tischId = null,
-  listId
+  listId,
+  backTo,
 }) => {
   const [currentList, setCurrentList] = useState<StoredList | null>(null);
   const displayPlayers = players.length > 0 ? players : Array(numPlayers).fill('');
@@ -79,6 +81,7 @@ const FourPlayerList: React.FC<FourPlayerListProps> = ({
           totalGames={totalGames}
           playedGames={playedGames}
           date={currentList?.date || new Date().toISOString()}
+          backTo={backTo}
         />
         <div className="px-2 py-1">
           <PlayersList

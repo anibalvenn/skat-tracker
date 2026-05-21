@@ -15,6 +15,8 @@ function FourPlayerListContent() {
   const listId = searchParams.get('listId');
   const seriesId = searchParams.get('seriesId');
   const tischId = searchParams.get('tischId');
+  const back = searchParams.get('back');
+  const backTo = back === 'championships' ? '/championships' : '/yourlists';
 
   return (
     <FourPlayerList
@@ -24,6 +26,7 @@ function FourPlayerListContent() {
       listId={listId ? parseInt(listId, 10) : undefined}
       seriesId={seriesId}
       tischId={tischId}
+      backTo={backTo}
     />
   );
 }

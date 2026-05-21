@@ -14,6 +14,7 @@ interface ThreePlayerListProps {
   seriesId?: string | null;
   tischId?: string | null;
   listId?: number;
+  backTo?: string;
 }
 
 const ThreePlayerList: React.FC<ThreePlayerListProps> = ({
@@ -22,7 +23,8 @@ const ThreePlayerList: React.FC<ThreePlayerListProps> = ({
   totalGames,
   seriesId = null,
   tischId = null,
-  listId
+  listId,
+  backTo,
 }) => {
   const [currentList, setCurrentList] = useState<StoredList | null>(null);
   const displayPlayers = players.length > 0 ? players : Array(numPlayers).fill('');
@@ -80,6 +82,7 @@ const ThreePlayerList: React.FC<ThreePlayerListProps> = ({
           totalGames={totalGames}
           playedGames={playedGames}
           date={currentList?.date || new Date().toISOString()}
+          backTo={backTo}
         />
         <div className="px-2 py-1">
           <ThreePlayersList

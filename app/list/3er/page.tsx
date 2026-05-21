@@ -16,6 +16,8 @@ function ThreePlayerListContent() {
   const listId = searchParams.get('listId');
   const seriesId = searchParams.get('seriesId');
   const tischId = searchParams.get('tischId');
+  const back = searchParams.get('back');
+  const backTo = back === 'championships' ? '/championships' : '/yourlists';
 
   return (
     <ProtectedList mode="3er">
@@ -26,6 +28,7 @@ function ThreePlayerListContent() {
         listId={listId ? parseInt(listId, 10) : undefined}
         seriesId={seriesId}
         tischId={tischId}
+        backTo={backTo}
       />
     </ProtectedList>
   );

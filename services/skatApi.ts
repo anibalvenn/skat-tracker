@@ -25,7 +25,7 @@ export const updatePlayerPoints = async ({
   mode = 'three',
 }: UpdatePointsParams): Promise<ApiResponse> => {
   try {
-    const { baseUrl, apiKey } = await getApiBase();
+    const { baseUrl, apiKey, pin } = await getApiBase();
     const endpoint = mode === 'four'
       ? '/api/update_four_player_points'
       : '/api/update_three_player_points';
@@ -40,6 +40,7 @@ export const updatePlayerPoints = async ({
         playerId,
         seriesId,
         tischId,
+        pin,
         total_points: totalPoints,
         table_points: basePoints,
         won_games: wonGames,

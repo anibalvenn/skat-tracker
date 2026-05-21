@@ -10,18 +10,20 @@ interface GameHeaderProps {
   totalGames: number;
   playedGames: number;
   date: string;
+  backTo?: string;
 }
 
 export const GameHeader: React.FC<GameHeaderProps> = ({
   listId,
   totalGames,
   playedGames,
-  date
+  date,
+  backTo = '/yourlists',
 }) => {
   const router = useRouter();
 
   const handleBack = () => {
-    router.push('/yourlists');
+    router.push(backTo);
   };
 
   const formattedDate = new Date(date).toLocaleDateString('en-US', {

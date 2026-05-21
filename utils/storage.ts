@@ -11,6 +11,7 @@ export interface ManagerConfig {
   seriesName: string;
   tischId: number | null;
   tischName: string;
+  pin: string;                              // 6-digit PIN printed on the paper list
   players: { id: number; name: string }[];  // seat order from manager
 }
 

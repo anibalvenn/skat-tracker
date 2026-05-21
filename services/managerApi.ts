@@ -56,8 +56,64 @@ export async function testConnection(url: string, apiKey: string): Promise<Champ
   return fetchChampionships(url.replace(/\/$/, ''), apiKey);
 }
 
-/** Returns { baseUrl, apiKey } from saved config, or empty strings if none. */
-export async function getApiBase(): Promise<{ baseUrl: string; apiKey: string }> {
+/** Returns connection base from saved config. */
+export async function getApiBase(): Promise<{ baseUrl: string; apiKey: string; pin: string }> {
   const cfg = await getManagerConfig();
-  return { baseUrl: cfg?.url ?? '', apiKey: cfg?.apiKey ?? '' };
+  return { baseUrl: cfg?.url ?? '', apiKey: cfg?.apiKey ?? '', pin: cfg?.pin ?? '' };
+}
+
+// ── Ranking / table endpoints ─────────────────────────────────────────────────
+
+export interface SeriesRankingItem {
+  rank: number;
+  player_id: number;
+  player_name: string;
+  total_points: number;
+  won_games: number | null;
+  lost_games: number | null;
+  table_points: number | null;
+}
+
+export interface ChampionshipRankingItem {
+  rank: number;
+  player_id: number;
+  player_name: string;
+  total_points: number;
+  series_points: Record<number, number>;
+}
+
+export interface SeriesTablePlayer {
+  id: number;
+  name: string;
+  total_points: number | null;
+  won_games: number | null;
+  lost_games: number | null;
+  table_points: number | null;
+}
+
+export interface SeriesTableItem {
+  id: number;
+  name: string;
+  players: SeriesTablePlayer[];
+}
+
+export async function fetchSeriesRanking(url: string, apiKey: string, seriesId: number): Promise<SeriesRankingItem[]> {
+  const headers = await buildHeaders(url, apiKey);
+  const res = await fetch(`${url}/api/series_ranking?series_id=${seriesId}`, { headers });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
+export async function fetchChampionshipRanking(url: string, apiKey: string, championshipId: number): Promise<ChampionshipRankingItem[]> {
+  const headers = await buildHeaders(url, apiKey);
+  const res = await fetch(`${url}/api/championship_ranking?championship_id=${championshipId}`, { headers });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
+export async function fetchSeriesTables(url: string, apiKey: string, seriesId: number): Promise<SeriesTableItem[]> {
+  const headers = await buildHeaders(url, apiKey);
+  const res = await fetch(`${url}/api/series_tables?series_id=${seriesId}`, { headers });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
 }

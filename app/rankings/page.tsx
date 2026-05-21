@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
 
-export default function ConnectPage() {
+export default function RankingsPage() {
   redirect('/championships');
 }

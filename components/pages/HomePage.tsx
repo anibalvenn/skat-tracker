@@ -7,27 +7,24 @@ import { getManagerConfig } from '@/utils/storage';
 
 export default function HomePage() {
   const router = useRouter();
-  const [connectedLabel, setConnectedLabel] = useState<string | null>(null);
+  const [champLabel, setChampLabel] = useState<string | null>(null);
 
   useEffect(() => {
     getManagerConfig().then(cfg => {
-      if (cfg?.tischName) {
-        setConnectedLabel(`${cfg.seriesName} · ${cfg.tischName}`);
+      if (cfg?.seriesId && cfg.tischName) {
+        setChampLabel(`${cfg.seriesName} · ${cfg.tischName}`);
+      } else if (cfg?.url) {
+        setChampLabel('Connected');
       }
     });
   }, []);
 
   return (
     <main className="min-h-[calc(100dvh-50px)] flex flex-col bg-gray-50">
-      {/* Header */}
       <header className="bg-white shadow-sm p-4">
         <h1 className="text-2xl font-bold text-center">Skat Tracker</h1>
-        {connectedLabel && (
-          <p className="text-center text-xs text-green-600 mt-1">{connectedLabel}</p>
-        )}
       </header>
 
-      {/* Main Content */}
       <div className="flex-1 flex items-center justify-center p-4">
         <div className="w-full max-w-md space-y-4">
           <button
@@ -51,20 +48,18 @@ export default function HomePage() {
           </button>
 
           <button
-            onClick={() => router.push('/connect')}
+            onClick={() => router.push('/championships')}
             className={`w-full p-4 rounded-lg shadow-sm transition-colors
                      flex items-center justify-center gap-2
-                     ${connectedLabel
-                       ? 'bg-green-100 text-green-700 hover:bg-green-200 border border-green-300'
-                       : 'bg-gray-500 text-white hover:bg-gray-600 active:bg-gray-700'}`}
+                     ${champLabel
+                       ? 'bg-purple-100 text-purple-700 hover:bg-purple-200 border border-purple-300'
+                       : 'bg-purple-600 text-white hover:bg-purple-700 active:bg-purple-800'}`}
           >
             <Trophy className="w-5 h-5" />
-            {connectedLabel ? 'Manager Connected' : 'Connect to Manager'}
-            {!connectedLabel && (
-              <span className="text-xs bg-white text-gray-500 px-2 py-0.5 rounded-full">
-                Optional
-              </span>
-            )}
+            Championships
+            {champLabel
+              ? <span className="text-xs font-normal opacity-75">· {champLabel}</span>
+              : <span className="text-xs bg-white text-purple-500 px-2 py-0.5 rounded-full">Optional</span>}
           </button>
         </div>
       </div>
