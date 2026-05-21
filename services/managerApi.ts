@@ -11,6 +11,7 @@ export interface ChampionshipItem {
 export interface SeriesItem {
   id: number;
   name: string;
+  is_open?: boolean;
 }
 
 export interface TischPlayer {

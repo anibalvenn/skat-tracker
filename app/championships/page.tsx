@@ -57,6 +57,8 @@ export default function ChampionshipsPage() {
   const [tables, setTables] = useState<SeriesTableItem[]>([]);
   const [seriesRanking, setSeriesRanking] = useState<SeriesRankingItem[]>([]);
   const [champRanking, setChampRanking] = useState<ChampionshipRankingItem[]>([]);
+  const [allSeries, setAllSeries] = useState<SeriesItem[]>([]);
+  const [tablesSeriesId, setTablesSeriesId] = useState<number | null>(null);
 
   // ── on mount: restore state from storage ────────────────────────────────────
   useEffect(() => {
@@ -107,6 +109,7 @@ export default function ChampionshipsPage() {
     setChampionships([]); setSeriesList([]); setTischeList([]);
     setSelectedChamp(null); setSelectedSeries(null); setSelectedTisch(null);
     setPin(''); setCfg(null);
+    setAllSeries([]); setTablesSeriesId(null);
     setView('connect');
   };
 
@@ -206,7 +209,8 @@ export default function ChampionshipsPage() {
     setRankError('');
     try {
       if (tab === 'tables') {
-        const data = await fetchSeriesTables(cfg.url, cfg.apiKey, cfg.seriesId!);
+        const sid = tablesSeriesId ?? cfg.seriesId!;
+        const data = await fetchSeriesTables(cfg.url, cfg.apiKey, sid);
         setTables(data);
       } else if (tab === 'series') {
         const data = await fetchSeriesRanking(cfg.url, cfg.apiKey, cfg.seriesId!);
@@ -221,11 +225,19 @@ export default function ChampionshipsPage() {
     } finally {
       setRankLoading(false);
     }
-  }, [cfg]);
+  }, [cfg, tablesSeriesId]);
 
   useEffect(() => {
     if (view === 'hub') loadRankings(rankTab);
   }, [view, rankTab, loadRankings]);
+
+  useEffect(() => {
+    if (view === 'hub' && cfg?.championshipId) {
+      fetchSeries(cfg.url, cfg.apiKey, cfg.championshipId)
+        .then(setAllSeries)
+        .catch(() => {});
+    }
+  }, [view, cfg]);
 
   // ── render ───────────────────────────────────────────────────────────────────
   return (
@@ -455,12 +467,38 @@ export default function ChampionshipsPage() {
 
             {!rankLoading && rankTab === 'tables' && (
               <div className="space-y-4">
+                {allSeries.length > 1 && (
+                  <div className="overflow-x-auto -mx-4 px-4">
+                    <div className="flex gap-2 pb-1 w-max">
+                      {allSeries.map(s => {
+                        const isSelected = (tablesSeriesId ?? cfg.seriesId) === s.id;
+                        const isOwn = s.id === cfg.seriesId;
+                        return (
+                          <button
+                            key={s.id}
+                            onClick={() => setTablesSeriesId(s.id)}
+                            className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm border transition-colors
+                              ${isSelected
+                                ? 'bg-purple-100 border-purple-400 text-purple-700 font-medium'
+                                : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'}`}
+                          >
+                            {s.is_open && <span className="w-2 h-2 rounded-full bg-green-400 flex-shrink-0" />}
+                            {s.name}
+                            {isOwn && <span className="text-xs opacity-60">·yours</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
                 {tables.length === 0 && !rankError && <p className="text-gray-400 text-sm">No tables yet.</p>}
-                {tables.map(tisch => (
-                  <div key={tisch.id} className={`bg-white rounded-lg border p-3 ${tisch.id === cfg.tischId ? 'border-purple-300' : 'border-gray-200'}`}>
+                {tables.map(tisch => {
+                  const isOwnTisch = (tablesSeriesId === null || tablesSeriesId === cfg.seriesId) && tisch.id === cfg.tischId;
+                  return (
+                  <div key={tisch.id} className={`bg-white rounded-lg border p-3 ${isOwnTisch ? 'border-purple-300' : 'border-gray-200'}`}>
                     <p className="font-semibold text-gray-800 mb-2 text-sm">
                       {tisch.name}
-                      {tisch.id === cfg.tischId && <span className="ml-2 text-xs text-purple-500 font-normal">your table</span>}
+                      {isOwnTisch && <span className="ml-2 text-xs text-purple-500 font-normal">your table</span>}
                     </p>
                     <table className="w-full text-sm">
                       <thead>
@@ -483,7 +521,8 @@ export default function ChampionshipsPage() {
                       </tbody>
                     </table>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
 
